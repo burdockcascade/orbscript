@@ -1,0 +1,7 @@
+function main()
+    var v1 = true
+    var v2 = false
+
+    -- v1 should be true
+    assert v1
+end

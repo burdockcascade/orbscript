@@ -1,0 +1,9 @@
+
+function main()
+
+    for t = 1 to 1000 do
+        assert t >= 1
+        assert t <= 1000
+    end
+
+end

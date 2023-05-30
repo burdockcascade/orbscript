@@ -1,0 +1,23 @@
+function main()
+    var number = 5
+    assert number == 5
+
+    var number2 = 10
+    assert number2 == 10
+
+    var number3 = 15
+    assert number3 == 15
+
+    var number4 = 20
+    assert number4 == 20
+
+    var number5 = 25
+    assert number5 == 25
+
+    var sum = number + number2 + number3 + number4 + number5
+    assert sum == 75
+
+    var average = sum / 5
+    assert average == 15
+
+end

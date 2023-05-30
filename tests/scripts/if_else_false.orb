@@ -1,0 +1,8 @@
+
+    function main()
+        if 1 == 2 then
+            assert false
+        else
+            assert true
+        end
+    end

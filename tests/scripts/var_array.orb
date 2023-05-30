@@ -1,0 +1,34 @@
+function main()
+    var array = [1, 2.7, "fish", false]
+
+    assert array[0] == 1
+    assert array[1] == 2.7
+    assert array[2] == "fish"
+    assert array[3] == false
+
+    array[0] = 10
+    assert array[0] == 10
+
+    array[1] = 20
+    assert array[1] == 20
+
+    array[2] = 30
+    assert array[2] == 30
+
+    array[0] = array[1] + array[2]
+    assert array[0] == 50
+
+    array[0] = array[0] * array[0]
+    assert array[0] == 2500
+
+    var array2 = [1, 2, 3] + [true, "dog", 6]
+    assert array2[0] == 1
+    assert array2[0 + 1] == 2
+    assert array2[2] == 3
+    assert array2[3]
+    assert array2[2 + 2] == "dog"
+    assert array2[10/2] == 6
+
+    var five = 5
+    assert array2[five] == 6
+end

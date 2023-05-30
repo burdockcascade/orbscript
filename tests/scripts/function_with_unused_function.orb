@@ -1,0 +1,11 @@
+function ignore_me()
+    assert false
+end
+
+function a_used_function()
+    return true
+end
+
+function main()
+    assert a_used_function()
+end

@@ -1,0 +1,14 @@
+-- this tests setting a variable to a number, string, and boolean
+function main()
+    -- set v1 to a number
+    var v1 = 1
+    assert v1 == 1
+
+    -- set v1 to a string
+    v1 = "fish"
+    assert v1 == "fish"
+
+    -- set v1 to a boolean
+    v1 = true
+    assert v1
+ end

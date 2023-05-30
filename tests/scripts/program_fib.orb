@@ -1,0 +1,26 @@
+
+function fib_quick()
+    var count = 10
+    var expected = 55
+    assert fib(count) == expected
+end
+
+function fib_long()
+    var count = 20
+    var expected = 6765
+    assert fib(count) == expected
+end
+
+function fib(n)
+
+    if n == 0 then
+        return 0
+    end
+
+    if n == 1 then
+        return 1
+    end
+
+    return fib(n - 1) + fib(n - 2)
+
+end

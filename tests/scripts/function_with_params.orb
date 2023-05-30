@@ -1,0 +1,8 @@
+function i_assert_something(b, ignore_me)
+    return b
+end
+
+function main()
+    -- call this function with 1 parameters
+    assert i_assert_something(true, false)
+end

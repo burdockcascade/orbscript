@@ -1,0 +1,22 @@
+function main()
+    var float = 3.14
+    assert float == 3.14
+
+    var float2 = 5.5
+    assert float2 == 5.5
+
+    var float3 = 7.7
+    assert float3 == 7.7
+
+    var float4 = 9.9
+    assert float4 == 9.9
+
+    var float5 = 11.11
+    assert float5 == 11.11
+
+    var floatSum = float + float2 + float3 + float4 + float5
+    assert floatSum == 37.349999999999994
+
+    var floatAverage = floatSum / 5
+    assert floatAverage == 7.469999999999999
+end
