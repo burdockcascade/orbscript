@@ -1,3 +1,5 @@
+use std::rc::Rc;
+use log::trace;
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -7,6 +9,7 @@ pub mod program;
 pub mod instructions;
 pub mod value;
 mod frame;
+mod iterator;
 
 pub(crate) struct VM {
     ip: usize,
@@ -173,12 +176,14 @@ impl VM {
 
                 Instruction::Return(has_return_value) => {
 
+                    // pop return value from stack
                     let return_value = if *has_return_value {
                         frame.pop_value_from_stack()
                     } else {
                         Value::Null
                     };
 
+                    // if no return position, then we are at the end of the program
                     if frame.return_position == None {
                         return Ok(None);
                     }

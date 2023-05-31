@@ -81,8 +81,7 @@ impl Frame {
 
     // get the value from the variable slot
     pub fn get_variable_or_panic(&self, slot: usize) -> &Value {
-        let value = self.variables.get(slot).expect("variable slot should exist");
-        return value;
+        self.variables.get(slot).expect("variable slot should exist")
     }
 
 }

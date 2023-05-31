@@ -21,6 +21,8 @@ pub enum Value {
     Class(HashMap<String, Value>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
     FunctionRef(usize),
+
+    Iterator(Box<Iterator>)
 }
 
 // function for finding Value by parameter. if its a number then return integer, if its a string then return string, etc.

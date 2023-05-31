@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::hash::Hash;
 use std::rc::Rc;
-use log::{debug, trace};
 use crate::compiler::token::Token;
 use crate::vm::instructions::Instruction;
 use crate::vm::value::Value;
@@ -62,6 +62,7 @@ impl Function {
             Token::Return(expr) => self.compile_return(expr),
             Token::WhileLoop(cond, body) => self.compile_while_loop(cond, body),
             Token::ForI(var, start, step, end, body) => self.compile_for_loop(var, start, step, end, body),
+            Token::ForEach(var, collection, body) => self.compile_for_each_loop(var, collection, body),
             Token::IfElse(cond, body, else_body) => self.compile_if_else(cond, body, else_body),
             Token::Comment(_) => { },
             _ => unimplemented!("statement not implemented: {:?}", statement)
@@ -123,13 +124,10 @@ impl Function {
     // compile assignment
     fn compile_assignment(&mut self, left: Box<Token>, right: Box<Token>) {
 
-        debug!("compiling assignment {:?} = {:?}", left, right);
-
         match *left.clone() {
 
             // store value in variable
             Token::Identifier(name) => {
-                trace!("storing value in variable {}", name.to_string());
 
                 // get the variable slot
                 let slot = self.get_variable(name.as_str());
@@ -167,7 +165,6 @@ impl Function {
 
             // store value in array index
             Token::CollectionIndex(name, index) => {
-                trace!("storing value in index {:?} of {}", index, name.to_string());
 
                 // load the variable
                 let Token::Identifier(name_as_string) = *name else { panic!("name is not an identifier") };
@@ -201,8 +198,6 @@ impl Function {
         let arg_len = args.len();
         let function_name = name.to_string();
 
-        trace!("call to function '{:?}' with {} args", function_name, arg_len);
-
         self.instructions.push(Instruction::LoadGlobal(function_name));
 
         // compile the arguments
@@ -224,7 +219,6 @@ impl Function {
 
     // compile if statement
     fn compile_if_else(&mut self, expr: Box<Token>, then_body: Vec<Token>, else_body: Option<Vec<Token>>) {
-        trace!("compiling ifelse");
 
         // Compile If Statement
         self.compile_expression(expr);
@@ -252,14 +246,12 @@ impl Function {
         // Update Jump to End
         self.instructions[jump_to_end] = Instruction::JumpForward(self.instructions.len() - jump_to_end);
     }
-    
+
     //==============================================================================================
     // LOOPS
 
     // compile for loop
     fn compile_for_loop(&mut self, var: Box<Token>, start: Box<Token>, end: Box<Token>, step: Box<Token>, block: Vec<Token>) {
-
-        trace!("for loop starting at {:?} and ending at {:?} with step {:?}", start, end, step);
 
         // set variable to initial value
         let var_slot = self.compile_variable(var, start);
@@ -296,7 +288,6 @@ impl Function {
 
     // compile while loop
     fn compile_while_loop(&mut self, expr: Box<Token>, block: Vec<Token>) {
-        trace!("compiling while loop");
 
         // Mark instruction pointer
         let start_ins_ptr = self.instructions.len();
@@ -320,6 +311,17 @@ impl Function {
 
     }
 
+    fn compile_for_each_loop(&mut self, var: Box<Token>, collection: Box<Token>, block: Vec<Token>) {
+
+        // compile var
+        let var_slot = self.compile_variable(var, Box::new(Token::Null));
+
+        // compile collection
+        self.compile_expression(collection);
+
+
+
+    }
 
     //==============================================================================================
     // EXPRESSIONS
@@ -385,7 +387,6 @@ impl Function {
             // Token::Object(class_name, params) => self.compile_new_object(class_name.to_string(), params),
 
             Token::CollectionIndex(id, index) => {
-                trace!("i = {:?}, e = {:?}", id, index);
 
                 // load array
                 let Token::Identifier(id_name) = *id else { panic!("expected identifier") };
@@ -400,7 +401,6 @@ impl Function {
             }
 
             Token::Call(name, args) => {
-                trace!("call = {:?}, args = {:?}", name, args);
                 self.compile_call(name, args);
             }
 

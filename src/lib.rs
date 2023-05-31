@@ -9,7 +9,7 @@ mod vm;
 
 pub fn run(program: &str, parameters: Option<Vec<Value>>, entry: Option<String>) -> Result<Option<Value>, String> {
 
-    let _ = TermLogger::init(LevelFilter::Info, Config::default(),TerminalMode::Mixed, ColorChoice::Auto);
+    let _ = TermLogger::init(LevelFilter::Trace, Config::default(),TerminalMode::Mixed, ColorChoice::Auto);
 
     info!("Running program");
 
