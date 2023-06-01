@@ -178,7 +178,7 @@ impl Function {
                 self.compile_expression(index);
 
                 // add value to collection
-                self.instructions.push(Instruction::SetCollectionItemByKey);
+                self.instructions.push(Instruction::SetCollectionItem);
 
                 // update variable
                 self.instructions.push(Instruction::MoveToLocalVariable(slot));
@@ -357,30 +357,33 @@ impl Function {
 
             Token::Array(elements) => {
 
-                // Create empty array
-                let ref_array = Rc::new(RefCell::new(Vec::default()));
-                self.instructions.push(Instruction::StackPush(Value::Array(ref_array)));
+                let array_size = elements.len();
 
+                // Compile each element
                 for element in elements {
                     self.compile_expression(Box::new(element));
-                    self.instructions.push(Instruction::ArrayAdd);
                 }
+
+                // collect items into array
+                self.instructions.push(Instruction::CreateCollectionAsArray(array_size));
 
             }
 
             Token::Dictionary(pairs) => {
 
-                // Create empty array
-                let ref_hashmap = Rc::new(RefCell::new(HashMap::default()));
-                self.instructions.push(Instruction::StackPush(Value::Dictionary(ref_hashmap)));
+                let dict_size = pairs.len();
 
                 for pair in pairs {
                     if let Token::KeyValuePair(k, value) = pair {
                         self.instructions.push(Instruction::StackPush(Value::String(k.to_string())));
                         self.compile_expression(value);
-                        self.instructions.push(Instruction::DictionaryAdd);
+                    } else {
+                        panic!("expected key value pair");
                     }
                 }
+
+                // collect items into dictionary
+                self.instructions.push(Instruction::CreateCollectionAsDictionary(dict_size));
 
             }
 
@@ -396,7 +399,7 @@ impl Function {
                 self.compile_expression(index);
 
                 // get array value
-                self.instructions.push(Instruction::GetCollectionItemByKey);
+                self.instructions.push(Instruction::GetCollectionItem);
 
             }
 

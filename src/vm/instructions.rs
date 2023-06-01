@@ -22,21 +22,11 @@ pub enum Instruction {
     // Objects
     CreateObject,
 
-    // Dictionaries
-    DictionaryKeys,
-    DictionaryAdd,
-    DictionaryGet,
-    DictionarySet,
-
-    // Arrays
-    ArrayLength,
-    ArrayAdd,
-    ArrayGet,
-    ArraySet,
-
-    // Key Value
-    GetCollectionItemByKey,
-    SetCollectionItemByKey,
+    // Collections
+    GetCollectionItem,
+    SetCollectionItem,
+    CreateCollectionAsDictionary(usize),
+    CreateCollectionAsArray(usize),
 
     // Instructions
     Call(usize),

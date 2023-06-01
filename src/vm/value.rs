@@ -22,7 +22,7 @@ pub enum Value {
     Object(Rc<RefCell<HashMap<String, Value>>>),
     FunctionRef(usize),
 
-    Iterator(Box<Iterator>)
+    Iterator(usize, Vec<Value>)
 }
 
 // function for finding Value by parameter. if its a number then return integer, if its a string then return string, etc.
@@ -62,8 +62,8 @@ impl Display for Value {
 impl PartialOrd for Value {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         match (self, rhs) {
-            (Value::Integer(v1), Value::Integer(v2)) => v1.partial_cmp(&v2),
-            (Value::Float(v1), Value::Float(v2)) => v1.partial_cmp(&v2),
+            (Value::Integer(v1), Value::Integer(v2)) => v1.partial_cmp(v2),
+            (Value::Float(v1), Value::Float(v2)) => v1.partial_cmp(v2),
             _ => unreachable!("can not subtract values")
         }
     }
@@ -96,23 +96,26 @@ impl Add for Value {
             // add integers together
             (Value::Integer(v1), Value::Integer(v2)) => Value::Integer(v1 + v2),
             (Value::Integer(v1), Value::Float(v2)) => Value::Float(v1 as f32 + v2),
-            (Value::Integer(v1), Value::String(v2)) => Value::String(v1.to_string().add(&*v2)),
+            (Value::Integer(v1), Value::String(v2)) => Value::String(v1.to_string().add(v2.as_str())),
 
             // add floats together
             (Value::Float(v1), Value::Integer(v2)) => Value::Float(v1 + v2 as f32),
             (Value::Float(v1), Value::Float(v2)) => Value::Float(v1 + v2),
 
             // add strings together
-            (Value::String(v1), Value::String(v2))  => Value::String(v1.add(&*v2)),
-            (Value::String(v1), Value::Bool(v2)) => Value::String(v1.add(&*v2.to_string())),
-            (Value::String(v1), Value::Integer(v2)) => Value::String(v1.add(&*v2.to_string())),
-            (Value::String(v1), Value::Float(v2)) => Value::String(v1.add(&*v2.to_string())),
+            (Value::String(v1), Value::String(v2))  => Value::String(v1.add(v2.as_str())),
+            (Value::String(v1), Value::Bool(v2)) => Value::String(v1.add(v2.to_string().as_str())),
+            (Value::String(v1), Value::Integer(v2)) => Value::String(v1.add(v2.to_string().as_str())),
+            (Value::String(v1), Value::Float(v2)) => Value::String(v1.add(v2.to_string().as_str())),
 
             // add arrays together
             (Value::Array(v1), Value::Array(v2)) => {
                 v1.borrow_mut().extend(v2.borrow().iter().cloned());
                 Value::Array(v1)
             },
+
+            // todo add dictionaries together
+            (Value::Dictionary(v1), Value::Dictionary(v2)) => unimplemented!("can not add dictionaries"),
 
             // add booleans together but only true + true = true
             (Value::Bool(v1), Value::Bool(v2)) => Value::Bool(v1 && v2),

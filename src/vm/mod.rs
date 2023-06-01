@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::rc::Rc;
 use log::trace;
 use crate::vm::frame::Frame;
@@ -9,7 +11,6 @@ pub mod program;
 pub mod instructions;
 pub mod value;
 mod frame;
-mod iterator;
 
 pub(crate) struct VM {
     ip: usize,
@@ -204,61 +205,49 @@ impl VM {
 
                 }
 
-                
-                //==================================================================================
-                // ARRAYS
-
-                // get array length
-                Instruction::ArrayLength => {
-
-                    let array = frame.pop_value_from_stack();
-
-                    if let Value::Array(val) = array {
-                        frame.push_value_to_stack(Value::Integer(val.borrow().len() as i32));
-                    } else {
-                        panic!("can not get length on non-array {}", array)
-                    }
-
-                    self.ip += 1;
-
-                }
-
-                // add value to array
-                Instruction::ArrayAdd => {
-
-                    let value = frame.pop_value_from_stack();
-                    let array = frame.pop_value_from_stack();
-
-                    if let Value::Array(v) = array {
-                        v.borrow_mut().push(value);
-                        frame.push_value_to_stack(Value::Array(v));
-                    }
-
-                    self.ip += 1;
-                }
-                
-
-                //==================================================================================
-                // DICTIONARY
-
-                Instruction::DictionaryAdd => {
-                    let value = frame.pop_value_from_stack();
-                    let key = frame.pop_value_from_stack();
-                    let dict = frame.pop_value_from_stack();
-
-                    if let Value::Dictionary(v) = dict {
-                        v.borrow_mut().insert(key.to_string(), value);
-                        frame.push_value_to_stack(Value::Dictionary(v));
-                    }
-
-                    self.ip += 1;
-                }
-                
 
                 //==================================================================================
                 // KEY VALUE
 
-                Instruction::GetCollectionItemByKey | Instruction::ArrayGet => {
+                Instruction::CreateCollectionAsDictionary(size) => {
+
+                    let mut items = HashMap::new();
+
+                    for _ in 0..*size {
+
+                        let value = frame.pop_value_from_stack();
+                        let key = frame.pop_value_from_stack();
+
+                        match key {
+                            Value::String(key) => {
+                                items.insert(key, value);
+                            },
+                            _ => panic!("can not create dictionary with non-string key {}", key)
+                        }
+                    }
+
+                    frame.push_value_to_stack(Value::Dictionary(Rc::new(RefCell::new(items))));
+
+                    self.ip += 1;
+                }
+
+                Instruction::CreateCollectionAsArray(size) => {
+
+                    let mut items = Vec::new();
+
+                    for _ in 0..*size {
+                        let value = frame.pop_value_from_stack();
+                        items.push(value);
+                    }
+
+                    items.reverse();
+
+                    frame.push_value_to_stack(Value::Array(Rc::new(RefCell::new(items))));
+
+                    self.ip += 1;
+                }
+
+                Instruction::GetCollectionItem => {
 
                     let key = frame.pop_value_from_stack();
                     let collection = frame.pop_value_from_stack();
@@ -294,7 +283,7 @@ impl VM {
                     self.ip += 1;
                 }
 
-                Instruction::SetCollectionItemByKey => {
+                Instruction::SetCollectionItem => {
 
                     let key = frame.pop_value_from_stack();
                     let value = frame.pop_value_from_stack();

@@ -1,34 +1,48 @@
 function main()
-    var array = [1, 2.7, "fish", false]
 
-    assert array[0] == 1
-    assert array[1] == 2.7
-    assert array[2] == "fish"
-    assert array[3] == false
+    -- test array creation
+    var an_array = [1, 2.7, "fish", false]
 
-    array[0] = 10
-    assert array[0] == 10
+    -- test array access
+    assert an_array[0] == 1
+    assert an_array[1] == 2.7
+    assert an_array[2] == "fish"
+    assert an_array[3] == false
 
-    array[1] = 20
-    assert array[1] == 20
+    -- test array assignment
+    an_array[0] = 10
+    assert an_array[0] == 10
 
-    array[2] = 30
-    assert array[2] == 30
+    -- test array assignment
+    an_array[1] = 20
+    assert an_array[1] == 20
 
-    array[0] = array[1] + array[2]
-    assert array[0] == 50
+    -- test array assignment
+    an_array[2] = 30
+    assert an_array[2] == 30
 
-    array[0] = array[0] * array[0]
-    assert array[0] == 2500
+    -- test array assignment
+    an_array[0] = an_array[1] + an_array[2]
+    assert an_array[0] == 50
 
-    var array2 = [1, 2, 3] + [true, "dog", 6]
-    assert array2[0] == 1
-    assert array2[0 + 1] == 2
-    assert array2[2] == 3
-    assert array2[3]
-    assert array2[2 + 2] == "dog"
-    assert array2[10/2] == 6
+    -- test array assignment
+    an_array[0] = an_array[0] * an_array[0]
+    assert an_array[0] == 2500
 
+    -- test array concatenation
+    var old_array = [1, 2, 3]
+    var new_array = old_array + [true, "dog", 6]
+
+    -- test array access with merged array
+    assert new_array[0] == 1
+    assert new_array[0 + 1] == 2
+    assert new_array[2] == 3
+    assert new_array[3]
+    assert new_array[2 + 2] == "dog"
+    assert new_array[10/2] == 6
+
+    -- test array access with variable
     var five = 5
-    assert array2[five] == 6
+    assert new_array[five] == 6
+
 end
