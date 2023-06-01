@@ -29,9 +29,18 @@ impl Compiler {
         let script: Vec<Token> = frontend::parser::script(source).map_err(|e| e.to_string())?;
 
         // compile functions
-        for token in script.iter() {
+        for token in script {
 
             match token {
+                Token::Constant(name, value) => {
+                    match *value {
+                        Token::Integer(i) => { p.globals.insert(name.to_string(), Value::Integer(i)); },
+                        Token::Float(f) => { p.globals.insert(name.to_string(), Value::Float(f)); },
+                        Token::String(s) => { p.globals.insert(name.to_string(), Value::String(s)); },
+                        Token::Bool(b) => { p.globals.insert(name.to_string(), Value::Bool(b)); },
+                        _ => {}
+                    }
+                },
                 Token::Function(name, args, body) => {
 
                     // create a new function

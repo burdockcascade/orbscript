@@ -9,7 +9,12 @@ pub enum Instruction {
     Print,
 
     // Stack
-    StackPush(Value),
+    PushNull,
+    PushInteger(i32),
+    PushFloat(f32),
+    PushBool(bool),
+    PushString(String),
+    PushGlobalRef(String),
 
     // Variables
     MoveToLocalVariable(usize),
@@ -18,6 +23,7 @@ pub enum Instruction {
 
     // Global
     LoadGlobal(String),
+    SetGlobal(String),
 
     // Objects
     CreateObject,

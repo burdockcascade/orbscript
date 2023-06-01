@@ -9,7 +9,7 @@ parser!(pub grammar parser() for str {
 
     // top level rule
     pub rule script() -> Vec<Token>
-        = WHITESPACE() f:(comment() / function())* WHITESPACE() { f }
+        = WHITESPACE() f:(constant() / comment() / function())* WHITESPACE() { f }
 
     rule statement() -> Token
         = WHITESPACE() s:(
@@ -46,6 +46,9 @@ parser!(pub grammar parser() for str {
     // existing variable assignment
     rule assignment() -> Token
         = left:(array_index() / identifier()) WHITESPACE() "=" WHITESPACE() r:expression() {  Token::Assign(Box::new(left), Box::new(r)) }
+
+    rule constant() -> Token
+        = "const" _ i:identifier() WHITESPACE() "=" WHITESPACE() e:expression() NEWLINES() {  Token::Constant(Box::new(i), Box::new(e)) }
 
     //==============================================================================================
     // FUNCTIONS

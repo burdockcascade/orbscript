@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use log::debug;
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -85,10 +86,36 @@ impl VM {
                 //==================================================================================
                 // STACK
 
-                Instruction::StackPush(value) => {
+                Instruction::PushNull => {
+                    frame.push_value_to_stack(Value::Null);
+                    ip += 1;
+                }
+
+                Instruction::PushInteger(value) => {
+                    frame.push_value_to_stack(Value::Integer(*value));
+                    ip += 1;
+                }
+
+                Instruction::PushFloat(value) => {
+                    frame.push_value_to_stack(Value::Float(*value));
+                    ip += 1;
+                }
+
+                Instruction::PushBool(value) => {
+                    frame.push_value_to_stack(Value::Bool(*value));
+                    ip += 1;
+                }
+
+                Instruction::PushString(value) => {
+                    frame.push_value_to_stack(Value::String(value.clone()));
+                    ip += 1;
+                }
+
+                Instruction::PushGlobalRef(name) => {
+                    let value = program.globals.get(name).expect(&*format!("global variable {:?} should exist", name));
                     frame.push_value_to_stack(value.clone());
                     ip += 1;
-                },
+                }
 
 
                 //==================================================================================

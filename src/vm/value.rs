@@ -31,24 +31,6 @@ pub enum Value {
 
 }
 
-// function for finding Value by parameter. if its a number then return integer, if its a string then return string, etc.
-impl Value {
-
-    pub fn parse(param: &str) -> Value {
-        match param.parse::<i32>() {
-            Ok(num) => Value::Integer(num),
-            Err(_) => match param.parse::<f32>() {
-                Ok(num) => Value::Float(num),
-                Err(_) => match param.parse::<bool>() {
-                    Ok(b) => Value::Bool(b),
-                    Err(_) => Value::String(param.to_string())
-                }
-            }
-        }
-    }
-
-}
-
 impl Display for Value {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {

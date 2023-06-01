@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use crate::compiler::token::Token;
 use crate::vm::instructions::Instruction;
-use crate::vm::value::Value;
 
 #[derive(Clone)]
 pub struct Function {
@@ -48,7 +47,7 @@ impl Function {
         match *statement {
             Token::Assert(exp) => self.compile_assert(exp),
             Token::Print(exp) => self.compile_print(exp),
-            Token::Variable(name, expr) => { self.compile_variable(name, expr); },
+            Token::Variable(name, expr) => self.compile_variable(name, expr),
             Token::Assign(name, expr) => self.compile_assignment(name, expr),
             Token::Call(name, args) => self.compile_call(name, args),
             Token::Return(expr) => self.compile_return(expr),
@@ -82,7 +81,7 @@ impl Function {
         }
     }
 
-    fn compile_variable(&mut self, name: Box<Token>, expr: Box<Token>) -> usize {
+    fn compile_variable(&mut self, name: Box<Token>, expr: Box<Token>) {
 
         // Declare variable
         let slot = self.add_variable(name.to_string());
@@ -93,7 +92,6 @@ impl Function {
         // store the value
         self.instructions.push(Instruction::MoveToLocalVariable(slot));
 
-        slot
     }
 
     // compile assignment
@@ -232,7 +230,7 @@ impl Function {
     fn compile_iterator(&mut self, var: Box<Token>, counter_start_at: Box<Token>, counter_step: Box<Token>, target: Box<Token>,  block: Vec<Token>) {
 
         // compile var
-        let var_slot = self.compile_variable(var, Box::new(Token::Null));
+        let var_slot = self.add_variable(var.to_string());
 
         // compile target
         self.compile_expression(target);
@@ -298,27 +296,31 @@ impl Function {
         match *token {
 
             Token::Null => {
-                self.instructions.push(Instruction::StackPush(Value::Null));
+                self.instructions.push(Instruction::PushNull);
             }
 
             Token::Integer(v) => {
-                self.instructions.push(Instruction::StackPush(Value::Integer(v)));
+                self.instructions.push(Instruction::PushInteger(v));
             }
 
             Token::Float(v) => {
-                self.instructions.push(Instruction::StackPush(Value::Float(v)));
+                self.instructions.push(Instruction::PushFloat(v));
             }
 
             Token::Bool(v) => {
-                self.instructions.push(Instruction::StackPush(Value::Bool(v)));
+                self.instructions.push(Instruction::PushBool(v));
             }
 
             Token::String(v) => {
-                self.instructions.push(Instruction::StackPush(Value::String(v)));
+                self.instructions.push(Instruction::PushString(v));
             }
 
             Token::Identifier(ident) => {
-                self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(ident.as_str())));
+                if self.variables.contains_key(ident.as_str()) {
+                    self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(ident.as_str())));
+                } else {
+                    self.instructions.push(Instruction::LoadGlobal(ident));
+                }
             }
 
             Token::Array(elements) => {
@@ -341,7 +343,7 @@ impl Function {
 
                 for pair in pairs {
                     if let Token::KeyValuePair(k, value) = pair {
-                        self.instructions.push(Instruction::StackPush(Value::String(k)));
+                        self.instructions.push(Instruction::PushString(k));
                         self.compile_expression(value);
                     } else {
                         panic!("expected key value pair");
@@ -362,7 +364,7 @@ impl Function {
                 self.anon_functions.insert(func_name.clone(), f.instructions);
 
                 // push globalref onto stack
-                self.instructions.push(Instruction::StackPush(Value::GlobalRef(func_name)));
+                self.instructions.push(Instruction::PushGlobalRef(func_name));
             }
 
             // Token::Object(class_name, params) => self.compile_new_object(class_name.to_string(), params),

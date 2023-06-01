@@ -48,6 +48,11 @@ fn var_lambda() {
     assert_eq!(run(include_str!("scripts/var_lambda.orb"), None, None).unwrap(), None);
 }
 
+#[test]
+fn var_constant() {
+    assert_eq!(run(include_str!("scripts/var_constants.orb"), None, None).unwrap(), None);
+}
+
 // Functions
 
 #[test]

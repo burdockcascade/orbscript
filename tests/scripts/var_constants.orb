@@ -1,0 +1,21 @@
+const PI = 3.14159265359
+const E = 2.71828182846
+const PHI = 1.61803398875
+const SQRT2 = 1.41421356237
+
+const name = "Math"
+const is_good = true
+const days_in_week = 7
+
+function main()
+
+    assert PI == 3.14159265359
+    assert E == 2.71828182846
+    assert PHI == 1.61803398875
+    assert SQRT2 == 1.41421356237
+
+    assert name == "Math"
+    assert is_good
+    assert days_in_week == 7
+
+end

@@ -16,6 +16,7 @@ pub enum Token {
     DotChain(Box<Token>, Vec<Token>),
 
     Variable(Box<Token>, Box<Token>),
+    Constant(Box<Token>, Box<Token>),
     Assign(Box<Token>, Box<Token>),
 
     Null,
