@@ -1,12 +1,20 @@
 function main()
 
-    var c = { "red": "apple", "yellow": "banana", "green": "grape" }
+    -- set c to a dictionary of items
+    var c = {
+        "red": "apple",
+        "yellow": "banana",
+        "green": "grape"
+    }
 
 
     -- for in loop
     for x in c do
+
         assert x > 1
+
         assert x < 10
+
     end
 
 

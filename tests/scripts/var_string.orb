@@ -1,4 +1,5 @@
 function main()
+
     var  myFirstName = "Sanela"
     assert myFirstName == "Sanela"
 
@@ -16,4 +17,5 @@ function main()
 
     var myStory = "My name is " + myFullName + " and I am " + myAge + " years old. I was born in " + myHomeTown + " and I really like it there."
     assert myStory == "My name is Sanela Kurtovic and I am 30 years old. I was born in Sarajevo and I really like it there."
+
 end

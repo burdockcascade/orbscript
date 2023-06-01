@@ -1,13 +1,19 @@
 
 function main()
 
+    -- set a to 0
     var b = 0
 
     -- while loop
     while b < 10 do
 
+        -- assert b is greater than or equal to 0
         assert b >= 0
+
+        -- assert b is less than 10
         assert b < 10
+
+        -- increment b
         b = b + 1
 
     end

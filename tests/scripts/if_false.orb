@@ -1,12 +1,14 @@
+function main()
 
-    function main()
+    -- set a to true
+    var a = true
 
-        var a = true
-
-        if 1 == 2 then
-            a = false
-        end
-
-        assert a
-
+    -- if true then set a to false
+    if 1 == 2 then
+        a = false
     end
+
+    -- assert a is true
+    assert a
+
+end

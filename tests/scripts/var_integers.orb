@@ -1,4 +1,5 @@
 function main()
+
     var number = 5
     assert number == 5
 

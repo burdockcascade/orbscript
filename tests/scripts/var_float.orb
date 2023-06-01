@@ -1,4 +1,5 @@
 function main()
+
     var float = 3.14
     assert float == 3.14
 
@@ -19,4 +20,5 @@ function main()
 
     var floatAverage = floatSum / 5
     assert floatAverage == 7.469999999999999
+
 end

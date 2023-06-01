@@ -1,4 +1,6 @@
 -- this is a comment
 function main()
+
     assert true
+
 end

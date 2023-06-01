@@ -1,5 +1,6 @@
 -- this tests setting a variable to a number, string, and boolean
 function main()
+
     -- set v1 to a number
     var v1 = 1
     assert v1 == 1
@@ -11,4 +12,5 @@ function main()
     -- set v1 to a boolean
     v1 = true
     assert v1
+
  end

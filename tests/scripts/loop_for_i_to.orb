@@ -1,9 +1,15 @@
 
 function main()
 
+    -- loop for 1000 times
     for t = 1 to 1000 do
+
+        -- assert that t is an integer
         assert t >= 1
+
+        -- assert that t is less than or equal to 1000
         assert t <= 1000
+
     end
 
 end
