@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use log::debug;
+use log::{debug, warn};
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -25,7 +25,7 @@ impl VM {
 
     pub fn execute(&mut self, program: Program, parameters: Option<Vec<Value>>, entrypoint: Option<String>) -> Result<Option<Value>, String> {
 
-        let mut ip: usize = 0;
+        let mut ip: usize;
         let mut frames: Vec<Frame> = vec![];
         
         // Set entrypoint or use default
@@ -50,11 +50,14 @@ impl VM {
 
         // set current frame
         let mut frame = frames.last_mut().expect("frame should be on the stack");
-
         loop {
 
             // get instruction
             let instruction = program.instructions.get(ip).expect(&*format!("instruction #{} should exist", ip));
+
+            // debug!("ip: {}, instruction: {:?}", ip, instruction);
+            // debug!("variables: {:?}", frame.variables);
+            // debug!("stack: {:?}", frame.data);
 
             match instruction {
 
@@ -261,9 +264,7 @@ impl VM {
                     let collection = frame.pop_value_from_stack();
 
                     match collection {
-
                         Value::Array(items) => {
-
                             if let Value::Integer(index) = key {
                                 let borrowed_items = items.borrow();
                                 let array_value = borrowed_items.get(index as usize).expect(format!("array index {} should exist", index).as_str());
@@ -272,7 +273,6 @@ impl VM {
                                 panic!("can not get index on non-integer {}", key)
                             }
                         },
-
                         Value::Dictionary(items) => {
 
                             if let Value::String(index) = key {
@@ -283,9 +283,7 @@ impl VM {
                                 panic!("can not get index on non-string {}", key)
                             }
                         }
-
-                        _ => panic!("can not get index on non-collection {}", key)
-
+                        _ => panic!("can not get index on non-collection {}", collection)
                     }
 
                     ip += 1;
@@ -314,12 +312,113 @@ impl VM {
                                 panic!("can not get index on non-string {}", key)
                             }
                         }
-                        _ => panic!("can not get index on non-collection")
+                        _ => panic!("can not get index on non-collection {}", collection)
                     }
 
                     ip += 1;
                 }
 
+
+                //==================================================================================
+                // ITERATION
+
+                Instruction::IteratorStart => {
+
+                    let Value::Integer(start) = frame.pop_value_from_stack() else {
+                        panic!("start should be an integer");
+                    };
+
+                    let Value::Integer(step) = frame.pop_value_from_stack() else {
+                        panic!("step should be an integer");
+                    };
+
+                    let target = frame.pop_value_from_stack();
+
+                    let end = match target {
+                        Value::Integer(i) => {
+                            frame.push_value_to_stack(target);
+                            i
+                        },
+                        Value::Array(items) => {
+                            frame.push_value_to_stack(Value::Array(items.clone()));
+                            items.borrow().len() as i32 - 1
+                        },
+                        Value::Dictionary(items) => {
+
+                            // get dictionary keys and map to value string
+                            let keys = items.borrow().keys().map(|k| Value::String(k.clone())).collect::<Vec<Value>>();
+
+                            // get keys length
+                            let keys_length = keys.len() as i32 - 1;
+
+                            // push keys onto stack
+                            frame.push_value_to_stack(Value::Array(Rc::new(RefCell::new(keys))));
+
+                            keys_length
+                        },
+                        _ => panic!("can not iterate over non-integer, array or dictionary")
+                    };
+
+                    // push counter onto stack
+                    frame.push_value_to_stack(Value::Counter(start, step, end));
+
+                    ip += 1;
+                }
+
+                Instruction::IteratorNext(var_slot, ip_delta) => {
+
+                    let Value::Counter(index, step, end) = frame.pop_value_from_stack() else {
+                        panic!("invalid counter on stack");
+                    };
+
+                    match frame.pop_value_from_stack() {
+
+                        Value::Integer(i) => {
+
+                            // calculate next count
+                            let next_count = index + step;
+
+                            // if next count is greater than i, then skip to next instruction
+                            if next_count > i + 1 {
+                                ip += ip_delta;
+                                continue;
+                            }
+
+                            // push value to variable slot
+                            frame.push_value_to_variable_slot(*var_slot, Value::Integer(index as i32));
+
+                            // push ite and counter back onto stack
+                            frame.push_value_to_stack(Value::Integer(i));
+                            frame.push_value_to_stack(Value::Counter(next_count, step, end));
+
+                        }
+                        Value::Array(items) => {
+
+                            // calculate next count
+                            let next_count = index + step;
+
+                            if next_count > end + 1 {
+                                ip += ip_delta;
+                                continue;
+                            }
+
+                            // get item from array
+                            let borrowed_items = items.borrow();
+                            let array_value = borrowed_items.get(index as usize).expect(format!("array index {} should exist", index).as_str());
+
+                            // push value to variable slot
+                            frame.push_value_to_variable_slot(*var_slot, array_value.clone());
+
+                            // push collection back onto stack
+                            frame.push_value_to_stack(Value::Array(items.clone()));
+                            frame.push_value_to_stack(Value::Counter(index + 1, step, end));
+
+                        },
+                        _ => panic!("can not get index on non-collection")
+                    }
+
+                    ip += 1;
+                }
 
 
                 //==================================================================================
@@ -397,6 +496,7 @@ impl VM {
             }
 
         }
+
 
     }
 

@@ -53,8 +53,8 @@ impl Function {
             Token::Call(name, args) => self.compile_call(name, args),
             Token::Return(expr) => self.compile_return(expr),
             Token::WhileLoop(cond, body) => self.compile_while_loop(cond, body),
-            Token::ForI(var, start, step, end, body) => self.compile_for_loop(var, start, step, end, body),
-            Token::ForEach(var, collection, body) => self.compile_for_each_loop(var, collection, body),
+            Token::ForI(var, start, step, end, body) => self.compile_iterator(var, start, step, end, body),
+            Token::ForEach(var, collection, body) =>   self.compile_iterator(var, Box::new(Token::Integer(0)),  Box::new(Token::Integer(1)), collection, body),
             Token::IfElse(cond, body, else_body) => self.compile_if_else(cond, body, else_body),
             Token::Comment(_) => { },
             _ => unimplemented!("statement not implemented: {:?}", statement)
@@ -86,23 +86,6 @@ impl Function {
 
         // Declare variable
         let slot = self.add_variable(name.to_string());
-
-        // compile the value
-        self.compile_expression(expr);
-
-        // store the value
-        self.instructions.push(Instruction::MoveToLocalVariable(slot));
-
-        slot
-    }
-
-    fn compile_tmp_variable(&mut self, expr: Box<Token>) -> usize {
-
-        // create tmp variable name
-        let name = format!("tmp{}", self.variables.len());
-
-        // Declare variable
-        let slot = self.add_variable(name);
 
         // compile the value
         self.compile_expression(expr);
@@ -246,39 +229,36 @@ impl Function {
     //==============================================================================================
     // LOOPS
 
-    // compile for loop
-    fn compile_for_loop(&mut self, var: Box<Token>, start: Box<Token>, end: Box<Token>, step: Box<Token>, block: Vec<Token>) {
+    fn compile_iterator(&mut self, var: Box<Token>, counter_start_at: Box<Token>, counter_step: Box<Token>, target: Box<Token>,  block: Vec<Token>) {
 
-        // set variable to initial value
-        let var_slot = self.compile_variable(var, start);
-        let end_slot = self.compile_tmp_variable(end.clone());
-        let step_slot = self.compile_tmp_variable(step.clone());
+        // compile var
+        let var_slot = self.compile_variable(var, Box::new(Token::Null));
 
-        // Mark instruction pointer
-        let start_of_loop = self.instructions.len();
+        // compile target
+        self.compile_expression(target);
 
-        // Check if var is less than end
-        self.instructions.push(Instruction::LoadLocalVariable(var_slot));
-        self.instructions.push(Instruction::LoadLocalVariable(end_slot));
-        self.instructions.push(Instruction::LessThanOrEqual);
+        // compile counter step
+        self.compile_expression(counter_step);
 
-        // Jump to end if expression is false
-        let jump_not_true = self.instructions.len();
-        self.instructions.push(Instruction::Halt(String::from("no jump-not-true provided")));
+        // compile counter start
+        self.compile_expression(counter_start_at);
 
-        // Compile statements inside loop block
+        // Create Iterator
+        self.instructions.push(Instruction::IteratorStart);
+
+        // temp jump to end
+        let start_ins_ptr = self.instructions.len();
+        self.instructions.push(Instruction::Halt(String::from("iterator not updated")));
+
+        // compile statements inside loop block
         self.compile_statements(block);
 
-        // compile step and jump back to start of loop
-        self.instructions.push(Instruction::LoadLocalVariable(var_slot));
-        self.instructions.push(Instruction::LoadLocalVariable(step_slot));
-        self.instructions.push(Instruction::Add);
-        self.instructions.push(Instruction::MoveToLocalVariable(var_slot));
-        self.instructions.push(Instruction::JumpBackward(self.instructions.len() - start_of_loop));
+        // jump back to start
+        self.instructions.push(Instruction::JumpBackward(self.instructions.len() - start_ins_ptr));
 
-        // Update jump not true value
-        let jump_to_pos = self.instructions.len() - jump_not_true;
-        self.instructions[jump_not_true] = Instruction::JumpIfFalse(jump_to_pos as i32);
+        // update iterator
+        let jump_to_pos = self.instructions.len() - start_ins_ptr;
+        self.instructions[start_ins_ptr] = Instruction::IteratorNext(var_slot, jump_to_pos);
 
     }
 
@@ -307,18 +287,7 @@ impl Function {
 
     }
 
-    // todo: compile for each loop
-    fn compile_for_each_loop(&mut self, var: Box<Token>, collection: Box<Token>, block: Vec<Token>) {
 
-        // compile var
-        let var_slot = self.compile_variable(var, Box::new(Token::Null));
-
-        // compile collection
-        self.compile_expression(collection);
-
-
-
-    }
 
     //==============================================================================================
     // EXPRESSIONS
@@ -345,7 +314,7 @@ impl Function {
             }
 
             Token::String(v) => {
-                self.instructions.push(Instruction::StackPush(Value::String(v.to_string())));
+                self.instructions.push(Instruction::StackPush(Value::String(v)));
             }
 
             Token::Identifier(ident) => {
@@ -372,7 +341,7 @@ impl Function {
 
                 for pair in pairs {
                     if let Token::KeyValuePair(k, value) = pair {
-                        self.instructions.push(Instruction::StackPush(Value::String(k.to_string())));
+                        self.instructions.push(Instruction::StackPush(Value::String(k)));
                         self.compile_expression(value);
                     } else {
                         panic!("expected key value pair");

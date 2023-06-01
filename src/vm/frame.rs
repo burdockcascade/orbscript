@@ -3,8 +3,8 @@ use crate::vm::value::Value;
 #[derive(Debug)]
 pub struct Frame {
     pub return_position: Option<usize>,
-    variables: Vec<Value>,
-    data: Vec<Value>,
+    pub variables: Vec<Value>,
+    pub data: Vec<Value>,
 }
 
 impl Frame {

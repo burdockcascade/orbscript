@@ -28,6 +28,10 @@ pub enum Instruction {
     CreateCollectionAsDictionary(usize),
     CreateCollectionAsArray(usize),
 
+    // Iteration
+    IteratorStart,
+    IteratorNext(usize, usize),
+    
     // Instructions
     Call(usize),
     JumpForward(usize),

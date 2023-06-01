@@ -1,0 +1,18 @@
+function main()
+
+    var counter = 0
+
+    -- set an array of numbers
+    var v1 = { "one" : 1, "two" : 2, "three" : 3, "four" : 4, "five" : 5,
+               "six" : 6, "seven" : 7, "eight" : 8, "nine" : 9, "ten" : 10 }
+
+    -- for in loop
+    for x in v1 do
+        counter = counter + 1
+        assert v1[x] >= 1
+        assert v1[x] <= 10
+    end
+
+    assert counter == 10
+
+end

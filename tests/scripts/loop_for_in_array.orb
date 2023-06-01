@@ -1,12 +1,17 @@
 function main()
 
+    var counter = 0
+
     -- set an array of numbers
     var v1 = [2, 3, 4, 5, 6, 7, 8, 9]
 
     -- for in loop
     for x in v1 do
+        counter = counter + 1
         assert x > 1
         assert x < 10
     end
+
+    assert counter == 8
 
 end

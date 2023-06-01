@@ -79,8 +79,8 @@ parser!(pub grammar parser() for str {
         = "while" _ e:expression() _ "do" _ stmts:statement()* _ "end" { Token::WhileLoop(Box::new(e), stmts) }
 
     rule loop_for() -> Token
-        = "for" _ i:identifier() _ "=" _ s:expression() _ "to" _ e:expression() _ "do" _ stmts:statement()* _ "end" { Token::ForI(Box::new(i), Box::new(s), Box::new(e), Box::new(Token::Integer(1)), stmts) }
-        / "for" _ i:identifier() _ "=" _ s:expression() _ "to" _ e:expression() _ "step" _ step:expression() _ "do" _ stmts:statement()* _ "end" { Token::ForI(Box::new(i), Box::new(s), Box::new(e), Box::new(step), stmts) }
+        = "for" _ i:identifier() _ "=" _ start:expression() _ "to" _ end:expression() _ "do" _ stmts:statement()* _ "end" { Token::ForI(Box::new(i), Box::new(start), Box::new(Token::Integer(1)), Box::new(end), stmts) }
+        / "for" _ i:identifier() _ "=" _ start:expression() _ "to" _ end:expression() _ "step" _ step:expression() _ "do" _ stmts:statement()* _ "end" { Token::ForI(Box::new(i), Box::new(start), Box::new(step), Box::new(end), stmts) }
 
     rule loop_for_each() -> Token
         = "for" _ i:identifier() _ "in" _ e:expression() _ "do" _ stmts:statement()* _ "end" { Token::ForEach(Box::new(i), Box::new(e), stmts) }

@@ -1,15 +1,23 @@
 
 function main()
 
+    var counter = 0
+    var start_at = 1
+    var target = 3
+
     -- loop for 1000 times
-    for t = 1 to 1000 do
+    for t = start_at to target do
+
+        counter = counter + 1
 
         -- assert that t is an integer
         assert t >= 1
 
         -- assert that t is less than or equal to 1000
-        assert t <= 1000
+        assert t <= 3
 
     end
+
+    assert counter == 3
 
 end

@@ -13,6 +13,7 @@ pub enum Value {
     // Values
     Null,
     Integer(i32),
+    Pointer(usize),
     Float(f32),
     Bool(bool),
     String(String),
@@ -21,8 +22,12 @@ pub enum Value {
     Class(HashMap<String, Value>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
 
+    // counter with start, step, end
+    Counter(i32, i32, i32),
+
     GlobalRef(String),
     FunctionPointer(usize),
+    InstructionPointer(usize),
 
 }
 
@@ -114,9 +119,6 @@ impl Add for Value {
                 v1.borrow_mut().extend(v2.borrow().iter().cloned());
                 Value::Array(v1)
             },
-
-            // todo add dictionaries together
-            (Value::Dictionary(v1), Value::Dictionary(v2)) => unimplemented!("can not add dictionaries"),
 
             // add booleans together but only true + true = true
             (Value::Bool(v1), Value::Bool(v2)) => Value::Bool(v1 && v2),

@@ -68,13 +68,18 @@ fn function_with_unused_function() {
 // LOOPS
 
 #[test]
-fn loop_for_i() {
+fn loop_for_i_to() {
     assert_eq!(run(include_str!("scripts/loop_for_i_to.orb"), None, None).unwrap(), None);
 }
 
 #[test]
-fn loop_for_each() {
-    assert_eq!(run(include_str!("scripts/loop_for_each_in.orb"), None, None).unwrap(), None);
+fn loop_for_in_array() {
+    assert_eq!(run(include_str!("scripts/loop_for_in_array.orb"), None, None).unwrap(), None);
+}
+
+#[test]
+fn loop_for_in_dict() {
+    assert_eq!(run(include_str!("scripts/loop_for_in_dict.orb"), None, None).unwrap(), None);
 }
 
 #[test]
