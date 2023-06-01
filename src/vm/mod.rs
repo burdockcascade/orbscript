@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use log::{debug, warn};
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -414,7 +413,7 @@ impl VM {
                             frame.push_value_to_stack(Value::Counter(index + 1, step, end));
 
                         },
-                        _ => panic!("can not get index on non-collection")
+                        _ => panic!("can not iterate over this value type")
                     }
 
                     ip += 1;

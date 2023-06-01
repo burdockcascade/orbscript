@@ -4,7 +4,7 @@ function main()
     -- set counter to 0
     var counter = 0
 
-    -- set start_at to 1
+    -- set start to 1
     var start_at = 1
 
     -- set target to 3
