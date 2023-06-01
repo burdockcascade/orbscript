@@ -54,6 +54,9 @@ parser!(pub grammar parser() for str {
     rule function() -> Token
         = "function" _ name:identifier() _ "(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::Function(name.to_string(), params, stmts) }
 
+    rule lambda() -> Token
+        = "function(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::AnonFunction(params, stmts) }
+
     // function call with arguments
     rule call() -> Token
         = i:identifier() "(" args:arg_list() ")" { Token::Call(Box::new(i), args) }
@@ -117,11 +120,13 @@ parser!(pub grammar parser() for str {
         / list()
         / dictionary()
         / array_index()
+        / l:lambda() { l } // this needs to come before call
         / c:call() { c }
         / n:null() { n }
         / b:boolean() { b }
-        / i:identifier() { i }
         / s:string() { s }
+        / i:identifier() { i } // this is greedy and must always come last
+
 
     rule identifier() -> Token
         = n:$(['a'..='z' | 'A'..='Z' | '_']['a'..='z' | 'A'..='Z' | '0'..='9' | '_']*) { Token::Identifier(n.to_owned()) }

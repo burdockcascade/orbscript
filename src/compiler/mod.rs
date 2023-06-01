@@ -29,25 +29,25 @@ impl Compiler {
         let script: Vec<Token> = frontend::parser::script(source).map_err(|e| e.to_string())?;
 
         // compile functions
-        debug!("Compiling functions");
         for token in script.iter() {
 
             match token {
                 Token::Function(name, args, body) => {
 
-                    debug!("Compiling function: {}", name);
-
                     // create a new function
-                    let f = Function::new();
-
-                    // compile the function
-                    let ins = f.compile(args.clone(), body.clone());
+                    let func = Function::new(args.clone(), body.clone());
 
                     // add the function to the global lookup
-                    p.globals.insert(name.to_string(), Value::FunctionRef(p.instructions.len()));
+                    p.globals.insert(name.to_string(), Value::FunctionPointer(p.instructions.len()));
 
                     // add the function to the program
-                    p.instructions.extend(ins);
+                    p.instructions.extend(func.instructions);
+
+                    // loop through the anonymous functions
+                    for (name, instructions) in func.anon_functions.iter() {
+                        p.globals.insert(name.to_string(), Value::FunctionPointer(p.instructions.len()));
+                        p.instructions.extend(instructions.clone());
+                    }
 
                 },
                 _ => {},

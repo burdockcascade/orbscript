@@ -1,44 +1,36 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::hash::Hash;
-use std::rc::Rc;
 use crate::compiler::token::Token;
 use crate::vm::instructions::Instruction;
 use crate::vm::value::Value;
 
+#[derive(Clone)]
 pub struct Function {
-    instructions: Vec<Instruction>,
-    variables: HashMap<String, usize>
+    pub instructions: Vec<Instruction>,
+    variables: HashMap<String, usize>,
+    pub anon_functions: HashMap<String, Vec<Instruction>>
 }
 
 impl Function {
-    pub fn new() -> Function {
-        Function {
+    pub fn new(parameters: Vec<Token>, body: Vec<Token>) -> Function {
+
+        let mut f = Function {
             instructions: vec![],
             variables: Default::default(),
-        }
-    }
-
-    pub fn compile(mut self, parameters: Vec<Token>, body: Vec<Token>) -> Vec<Instruction> {
-
-        // if there are no statements then return
-        if body.is_empty() {
-            return vec![Instruction::Return(false)];
-        }
+            anon_functions: Default::default()
+        };
 
         // store the parameters as variables
-        self.add_parameters(parameters.clone());
+        f.add_parameters(parameters.clone());
 
         // compile the statements
-        self.compile_statements(body);
+        f.compile_statements(body);
 
         // if tha last instruction is not a return then add one
-        if matches!(self.instructions.last(), Some(Instruction::Return(_))) == false {
-            self.instructions.push(Instruction::Return(false));
+        if matches!(f.instructions.last(), Some(Instruction::Return(_))) == false {
+            f.instructions.push(Instruction::Return(false));
         }
 
-        self.instructions
-
+        f
     }
 
     //==============================================================================================
@@ -198,7 +190,11 @@ impl Function {
         let arg_len = args.len();
         let function_name = name.to_string();
 
-        self.instructions.push(Instruction::LoadGlobal(function_name));
+        if self.variables.contains_key(&function_name) {
+            self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(function_name.as_str())));
+        } else {
+            self.instructions.push(Instruction::LoadGlobal(function_name));
+        }
 
         // compile the arguments
         for arg in args {
@@ -311,6 +307,7 @@ impl Function {
 
     }
 
+    // todo: compile for each loop
     fn compile_for_each_loop(&mut self, var: Box<Token>, collection: Box<Token>, block: Vec<Token>) {
 
         // compile var
@@ -385,6 +382,18 @@ impl Function {
                 // collect items into dictionary
                 self.instructions.push(Instruction::CreateCollectionAsDictionary(dict_size));
 
+            }
+
+            Token::AnonFunction(args, body) => {
+
+                // create a new function
+                let func_name = format!("lambda_{}", self.anon_functions.len());
+                let f = Function::new(args, body);
+
+                self.anon_functions.insert(func_name.clone(), f.instructions);
+
+                // push globalref onto stack
+                self.instructions.push(Instruction::StackPush(Value::GlobalRef(func_name)));
             }
 
             // Token::Object(class_name, params) => self.compile_new_object(class_name.to_string(), params),

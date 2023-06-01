@@ -20,9 +20,10 @@ pub enum Value {
     Dictionary(Rc<RefCell<HashMap<String, Value>>>),
     Class(HashMap<String, Value>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
-    FunctionRef(usize),
 
-    Iterator(usize, Vec<Value>)
+    GlobalRef(String),
+    FunctionPointer(usize),
+
 }
 
 // function for finding Value by parameter. if its a number then return integer, if its a string then return string, etc.
@@ -52,7 +53,7 @@ impl Display for Value {
             Value::Bool(b) => write!(f, "{b}"),
             Value::String(string) => write!(f, "{string}"),
             Value::Array(_val) => write!(f, "Array"),
-            Value::FunctionRef(name) => write!(f, "{name}"),
+            Value::FunctionPointer(name) => write!(f, "{name}"),
             _ => write!(f, "todo for {:?}", self),
         }
     }

@@ -1,21 +1,12 @@
 function main()
 
-    -- set c to a dictionary of items
-    var c = {
-        "red": "apple",
-        "yellow": "banana",
-        "green": "grape"
-    }
-
+    -- set an array of numbers
+    var v1 = [2, 3, 4, 5, 6, 7, 8, 9]
 
     -- for in loop
-    for x in c do
-
+    for x in v1 do
         assert x > 1
-
         assert x < 10
-
     end
-
 
 end

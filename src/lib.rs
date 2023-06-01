@@ -1,4 +1,4 @@
-use log::{info, LevelFilter, trace};
+use log::{info, LevelFilter};
 use simplelog::{ColorChoice, Config, TerminalMode, TermLogger};
 use crate::compiler::Compiler;
 use crate::vm::value::Value;

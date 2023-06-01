@@ -1,0 +1,20 @@
+function main()
+
+    -- define a lambda
+    var f1 = function(value)
+        assert value
+        return value
+    end
+
+    -- define another lambda
+    var f2 = function(input)
+        assert input
+        return input
+    end
+
+    -- call the lambda
+    assert f1(1 == 1)
+
+    -- call the lambda
+    assert f2(1 == 1)
+end

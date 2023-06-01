@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use log::trace;
+use log::debug;
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -13,21 +13,21 @@ pub mod value;
 mod frame;
 
 pub(crate) struct VM {
-    ip: usize,
-    frames: Vec<Frame>,
 }
 
 impl VM {
 
     pub fn new() -> VM {
         VM {
-            ip: 0,
-            frames: vec![],
+
         }
     }
 
     pub fn execute(&mut self, program: Program, parameters: Option<Vec<Value>>, entrypoint: Option<String>) -> Result<Option<Value>, String> {
 
+        let mut ip: usize = 0;
+        let mut frames: Vec<Frame> = vec![];
+        
         // Set entrypoint or use default
         let entry = match entrypoint {
             Some(entry) => entry,
@@ -36,8 +36,8 @@ impl VM {
 
         // Set instruction pointer to entrypoint
         if program.globals.contains_key(entry.as_str()) {
-            if let Value::FunctionRef(i) = program.globals.get(entry.as_str()).expect("program globals should have key") {
-                self.ip = *i
+            if let Value::FunctionPointer(i) = program.globals.get(entry.as_str()).expect("program globals should have key") {
+                ip = *i
             } else {
                 return Err(format!("No entrypoint found: {:?}", entry));
             }
@@ -46,15 +46,15 @@ impl VM {
         }
 
         // push new frame
-        self.frames.push(Frame::new(None, parameters));
+        frames.push(Frame::new(None, parameters));
 
         // set current frame
-        let mut frame = self.frames.last_mut().expect("frame should be on the stack");
+        let mut frame = frames.last_mut().expect("frame should be on the stack");
 
         loop {
 
             // get instruction
-            let instruction = program.instructions.get(self.ip).expect(&*format!("instruction #{} should exist", self.ip));
+            let instruction = program.instructions.get(ip).expect(&*format!("instruction #{} should exist", ip));
 
             match instruction {
 
@@ -70,13 +70,13 @@ impl VM {
                         _ => panic!("unable to assert {}", output)
                     }
 
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::Print => {
                     let output = frame.pop_value_from_stack();
                     println!("{:?}", output.to_string());
-                    self.ip += 1;
+                    ip += 1;
                 }
 
 
@@ -85,7 +85,7 @@ impl VM {
 
                 Instruction::StackPush(value) => {
                     frame.push_value_to_stack(value.clone());
-                    self.ip += 1;
+                    ip += 1;
                 },
 
 
@@ -93,11 +93,11 @@ impl VM {
                 // CONTROL FLOW
 
                 Instruction::JumpForward(delta) => {
-                    self.ip += *delta as usize;
+                    ip += *delta as usize;
                 }
 
                 Instruction::JumpBackward(delta) => {
-                    self.ip -= *delta as usize;
+                    ip -= *delta as usize;
                 }
 
                 Instruction::JumpIfFalse(delta) => {
@@ -107,12 +107,12 @@ impl VM {
                     match b {
                         Value::Bool(false) =>{
                             if *delta > 0 {
-                                self.ip += *delta as usize;
+                                ip += *delta as usize;
                             } else {
-                                self.ip -= *delta as usize;
+                                ip -= *delta as usize;
                             }
                         },
-                        _ => self.ip += 1
+                        _ => ip += 1
                     }
                 }
 
@@ -123,24 +123,24 @@ impl VM {
                 // get value from stack and store in variable
                 Instruction::MoveToLocalVariable(index) => {
                     frame.move_from_stack_to_variable_slot(*index);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::CopyToLocalVariable(index) => {
                     frame.copy_from_stack_to_variable_slot(*index);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 // get value from variable and push onto stack
                 Instruction::LoadLocalVariable(index) => {
                     frame.copy_from_variable_slot_to_stack(*index);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::LoadGlobal(name) => {
                     let function_ref = program.globals.get(name).expect(&*format!("global variable {:?} should exist", name));
                     frame.push_value_to_stack(function_ref.clone());
-                    self.ip += 1;
+                    ip += 1;
                 },
 
                 //==================================================================================
@@ -152,9 +152,17 @@ impl VM {
                     let mut args = frame.pop_values_from_stack(*arg_len as usize);
                     args.reverse();
 
-                    // pop functionref from stack
-                    let Value::FunctionRef(function_position) = frame.pop_value_from_stack() else {
-                        return Err(format!("functionRef should be on the stack"));
+                    // get function position
+                    let function_position = match frame.pop_value_from_stack() {
+                        Value::FunctionPointer(function_position) => function_position,
+                        Value::GlobalRef(global_ref) => {
+                            if let Value::FunctionPointer(function_position) = program.globals.get(global_ref.as_str()).expect("global should exist") {
+                                *function_position
+                            } else {
+                                panic!("global should be a functionref");
+                            }
+                        },
+                        _ => panic!("functionref should be on the stack")
                     };
 
                     let a = if args.is_empty() {
@@ -164,14 +172,14 @@ impl VM {
                     };
 
                     // push new frame onto frames
-                    let next_ip = self.ip + 1;
-                    self.frames.push(Frame::new(Some(next_ip), a));
+                    let next_ip = ip + 1;
+                    frames.push(Frame::new(Some(next_ip), a));
 
                     // set current frame
-                    frame = self.frames.last_mut().expect("frame should be on the stack");
+                    frame = frames.last_mut().expect("frame should be on the stack");
 
                     // set instruction pointer to function
-                    self.ip = function_position;
+                    ip = function_position;
 
                 }
 
@@ -190,13 +198,13 @@ impl VM {
                     }
 
                     // set instruction back to previous location
-                    self.ip = frame.return_position.expect("return position should be set");
+                    ip = frame.return_position.expect("return position should be set");
 
                     // remove last frame
-                    self.frames.pop();
+                    frames.pop();
 
                     // set new current frame
-                    frame = self.frames.last_mut().expect("frame should be on the stack");
+                    frame = frames.last_mut().expect("frame should be on the stack");
 
                     // push return value onto stack
                     if *has_return_value {
@@ -207,7 +215,7 @@ impl VM {
 
 
                 //==================================================================================
-                // KEY VALUE
+                // COLLECTIONS
 
                 Instruction::CreateCollectionAsDictionary(size) => {
 
@@ -228,7 +236,7 @@ impl VM {
 
                     frame.push_value_to_stack(Value::Dictionary(Rc::new(RefCell::new(items))));
 
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::CreateCollectionAsArray(size) => {
@@ -244,7 +252,7 @@ impl VM {
 
                     frame.push_value_to_stack(Value::Array(Rc::new(RefCell::new(items))));
 
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::GetCollectionItem => {
@@ -280,7 +288,7 @@ impl VM {
 
                     }
 
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::SetCollectionItem => {
@@ -309,7 +317,7 @@ impl VM {
                         _ => panic!("can not get index on non-collection")
                     }
 
-                    self.ip += 1;
+                    ip += 1;
                 }
 
 
@@ -320,30 +328,30 @@ impl VM {
                 Instruction::Add => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(lhs + rhs);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::Sub => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(lhs - rhs);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::Multiply => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(lhs * rhs);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::Divide => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(lhs / rhs);
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::Pow => {
                     // todo: implement
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 //==================================================================================
@@ -352,37 +360,37 @@ impl VM {
                 Instruction::Equal => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs == rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::NotEqual => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs != rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::LessThan => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs < rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::LessThanOrEqual => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs <= rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::GreaterThan => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs > rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 Instruction::GreaterThanOrEqual => {
                     let (lhs, rhs) = frame.pop_2_values_from_stack();
                     frame.push_value_to_stack(Value::Bool(lhs >= rhs));
-                    self.ip += 1;
+                    ip += 1;
                 }
 
                 _ => unimplemented!("instruction {:?}", instruction)
