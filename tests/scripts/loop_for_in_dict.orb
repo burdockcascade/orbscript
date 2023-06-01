@@ -1,5 +1,6 @@
 function main()
 
+    -- set a counter
     var counter = 0
 
     -- set an array of numbers
@@ -8,11 +9,18 @@ function main()
 
     -- for in loop
     for x in v1 do
+
+        -- increment the counter
         counter = counter + 1
+
+        -- assert that the value is greater than or equal to 1
         assert v1[x] >= 1
+
+        -- assert that the value is less than or equal to 10
         assert v1[x] <= 10
     end
 
+    -- assert that the counter is 10
     assert counter == 10
 
 end

@@ -1,23 +1,30 @@
 
 function main()
 
+    -- set counter to 0
     var counter = 0
+
+    -- set start_at to 1
     var start_at = 1
+
+    -- set target to 3
     var target = 3
 
-    -- loop for 1000 times
+    -- loop
     for t = start_at to target do
 
+        -- increment counter
         counter = counter + 1
 
         -- assert that t is an integer
         assert t >= 1
 
-        -- assert that t is less than or equal to 1000
+        -- assert that t is less than or equal to 3
         assert t <= 3
 
     end
 
+    -- assert that counter is 3
     assert counter == 3
 
 end

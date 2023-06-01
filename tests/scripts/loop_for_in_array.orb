@@ -1,5 +1,6 @@
 function main()
 
+    -- set a counter
     var counter = 0
 
     -- set an array of numbers
@@ -7,11 +8,19 @@ function main()
 
     -- for in loop
     for x in v1 do
+
+        -- increment counter
         counter = counter + 1
+
+        -- assert that x is greater than 1 and less than 10
         assert x > 1
+
+        -- assert that x is less than 10
         assert x < 10
+
     end
 
+    -- assert that counter is 8
     assert counter == 8
 
 end
