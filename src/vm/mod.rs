@@ -1,7 +1,6 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use log::debug;
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -13,14 +12,23 @@ pub mod value;
 mod frame;
 
 pub(crate) struct VM {
+
+    // a vec of callbacks
+    builtin_functions: HashMap<String, Box<dyn FnMut(Vec<Value>) -> Option<Value>>>,
+
 }
 
 impl VM {
 
     pub fn new() -> VM {
         VM {
-
+            builtin_functions: Default::default(),
         }
+    }
+
+    // add a callback to the vm
+    pub fn add_builtin_function(&mut self, name: &str, callback: impl FnMut(Vec<Value>) -> Option<Value> + 'static) {
+        self.builtin_functions.insert(name.to_string(), Box::new(callback));
     }
 
     pub fn execute(&mut self, program: Program, parameters: Option<Vec<Value>>, entrypoint: Option<String>) -> Result<Option<Value>, String> {
@@ -46,7 +54,7 @@ impl VM {
         }
 
         // push new frame
-        frames.push(Frame::new(None, parameters));
+        frames.push(Frame::new(None, parameters.unwrap_or(vec![])));
 
         // set current frame
         let mut frame = frames.last_mut().expect("frame should be on the stack");
@@ -60,28 +68,6 @@ impl VM {
             // debug!("stack: {:?}", frame.data);
 
             match instruction {
-
-                //==================================================================================
-                // BUILTINS
-
-                Instruction::Assert => {
-
-                    let output = frame.pop_value_from_stack();
-
-                    match output {
-                        Value::Bool(val) => assert!(val),
-                        _ => panic!("unable to assert {}", output)
-                    }
-
-                    ip += 1;
-                }
-
-                Instruction::Print => {
-                    let output = frame.pop_value_from_stack();
-                    println!("{:?}", output.to_string());
-                    ip += 1;
-                }
-
 
                 //==================================================================================
                 // STACK
@@ -110,13 +96,6 @@ impl VM {
                     frame.push_value_to_stack(Value::String(value.clone()));
                     ip += 1;
                 }
-
-                Instruction::PushGlobalRef(name) => {
-                    let value = program.globals.get(name).expect(&*format!("global variable {:?} should exist", name));
-                    frame.push_value_to_stack(value.clone());
-                    ip += 1;
-                }
-
 
                 //==================================================================================
                 // CONTROL FLOW
@@ -155,11 +134,6 @@ impl VM {
                     ip += 1;
                 }
 
-                Instruction::CopyToLocalVariable(index) => {
-                    frame.copy_from_stack_to_variable_slot(*index);
-                    ip += 1;
-                }
-
                 // get value from variable and push onto stack
                 Instruction::LoadLocalVariable(index) => {
                     frame.copy_from_variable_slot_to_stack(*index);
@@ -181,34 +155,47 @@ impl VM {
                     let mut args = frame.pop_values_from_stack(*arg_len as usize);
                     args.reverse();
 
-                    // get function position
-                    let function_position = match frame.pop_value_from_stack() {
-                        Value::FunctionPointer(function_position) => function_position,
-                        Value::GlobalRef(global_ref) => {
-                            if let Value::FunctionPointer(function_position) = program.globals.get(global_ref.as_str()).expect("global should exist") {
-                                *function_position
-                            } else {
-                                panic!("global should be a functionref");
+                    if let Value::String(func_name) = frame.pop_value_from_stack() {
+
+                        if self.builtin_functions.contains_key(func_name.as_str()) {
+
+                            // call builtin function
+                            let callback = self.builtin_functions.get_mut(func_name.as_str()).expect("callback should exist");
+                            let result = callback(args);
+
+                            // push result to stack
+                            if let Some(result) = result {
+                                frame.push_value_to_stack(result);
                             }
-                        },
-                        _ => panic!("functionref should be on the stack")
-                    };
 
-                    let a = if args.is_empty() {
-                        None
+                            ip += 1;
+
+                        } else if program.globals.contains_key(func_name.as_str()) {
+
+                            let function_ref = program.globals.get(func_name.as_str()).expect("global function should exist");
+
+                            // get function pointer
+                            let Value::FunctionPointer(function_position) = function_ref else {
+                                panic!("function should be a function pointer");
+                            };
+
+                            // push new frame onto frames
+                            let next_ip = ip + 1;
+                            frames.push(Frame::new(Some(next_ip), args));
+
+                            // set current frame
+                            frame = frames.last_mut().expect("frame should be on the stack");
+
+                            // set instruction pointer to function
+                            ip = *function_position;
+
+                        } else {
+                            panic!("can not find function: {:?}", func_name);
+                        }
+
                     } else {
-                        Some(args)
+                        panic!("function name is not on the stack")
                     };
-
-                    // push new frame onto frames
-                    let next_ip = ip + 1;
-                    frames.push(Frame::new(Some(next_ip), a));
-
-                    // set current frame
-                    frame = frames.last_mut().expect("frame should be on the stack");
-
-                    // set instruction pointer to function
-                    ip = function_position;
 
                 }
 

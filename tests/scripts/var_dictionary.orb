@@ -4,26 +4,26 @@ function main()
     var dictionary = { "key1": "value1", "key2": "value2", "key3": "value3" }
 
     -- assert values exist
-    assert dictionary["key1"] == "value1"
-    assert dictionary["key" + 2] == "value2"
-    assert dictionary["key3"] == "value3"
+    assertEquals( dictionary["key1"] , "value1", "dictionary key1 should be value1")
+    assertEquals( dictionary["key" + 2] , "value2", "dictionary key2 should be value2")
+    assertEquals( dictionary["key3"] , "value3", "dictionary key3 should be value3")
 
     -- assert values can be changed
     dictionary["key1"] = "value1.1"
-    assert dictionary["key1"] == "value1.1"
+    assertEquals( dictionary["key1"] , "value1.1", "dictionary key1 should be value1.1")
 
     -- assert values can be changed
     var dict1 = { "color": "red", "shape": "circle" }
-    assert dict1["color"] == "red"
+    assertEquals( dict1["color"] , "red", "dictionary color should be red")
 
     -- assert values can be copied
     var dict2 = dict1
-    assert dict2["color"] == "red"
+    assertEquals( dict2["color"] , "red", "dictionary color should be red")
 
     -- assert values can be changed
     dict2["color"] = "blue"
-    assert dict2["color"] == "blue"
-    assert dict1["color"] == "blue"
+    assertEquals( dict2["color"] , "blue", "dictionary color should be blue")
+    assertEquals( dict1["color"] , "blue",  "dictionary color should be blue")
 
 
 end

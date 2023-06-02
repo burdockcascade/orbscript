@@ -14,13 +14,14 @@ function main()
         counter = counter + 1
 
         -- assert that the value is greater than or equal to 1
-        assert v1[x] >= 1
+        assertTrue(v1[x] >= 1, "v1[x] >= 1")
 
         -- assert that the value is less than or equal to 10
-        assert v1[x] <= 10
+        assertTrue(v1[x] <= 10, "v1[x] <= 10")
+
     end
 
     -- assert that the counter is 10
-    assert counter == 10
+    assertTrue(counter == 10, "counter == 10")
 
 end

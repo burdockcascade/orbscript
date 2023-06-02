@@ -1,24 +1,24 @@
 function main()
 
     var number = 5
-    assert number == 5
+    assertEquals(number , 5, "number is not 5")
 
     var number2 = 10
-    assert number2 == 10
+    assertEquals(number2, 10, "number2 is not 10")
 
     var number3 = 15
-    assert number3 == 15
+    assertEquals(number3, 15, "number3 is not 15")
 
     var number4 = 20
-    assert number4 == 20
+    assertEquals(number4, 20, "number4 is not 20")
 
     var number5 = 25
-    assert number5 == 25
+    assertEquals(number5 , 25, "number5 is not 25")
 
     var sum = number + number2 + number3 + number4 + number5
-    assert sum == 75
+    assertEquals(sum, 75, "sum is not 75")
 
     var average = sum / 5
-    assert average == 15
+    assertEquals(average , 15, "average is not 15")
 
 end

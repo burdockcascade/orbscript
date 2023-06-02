@@ -1,12 +1,11 @@
 -- test if statement and else statement
 function main()
 
-
+    -- if true then assert true
     if 1 == 1 then
-        assert true
+        assertTrue(true, "this should be true")
     else
-        assert false
+        assertTrue(false, "this should not happen")
     end
-
 
 end

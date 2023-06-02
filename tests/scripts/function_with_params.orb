@@ -4,5 +4,5 @@ end
 
 function main()
     -- call this function with 1 parameters
-    assert i_assert_something(true, false)
+    assertTrue(i_assert_something(true, false), "this function should return true")
 end

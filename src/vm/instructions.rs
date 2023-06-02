@@ -4,26 +4,19 @@ use crate::vm::value::Value;
 #[derive(Clone, Debug)]
 pub enum Instruction {
 
-    // Built-in Functions
-    Assert,
-    Print,
-
     // Stack
     PushNull,
     PushInteger(i32),
     PushFloat(f32),
     PushBool(bool),
     PushString(String),
-    PushGlobalRef(String),
 
     // Variables
     MoveToLocalVariable(usize),
-    CopyToLocalVariable(usize),
     LoadLocalVariable(usize),
 
     // Global
     LoadGlobal(String),
-    SetGlobal(String),
 
     // Objects
     CreateObject,

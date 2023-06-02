@@ -1,7 +1,8 @@
 -- this is a comment
 function main()
 
-    -- this is an assertion
-    assert true
+    print("hello world")
+
+    assertTrue(true, "true is true")
 
 end

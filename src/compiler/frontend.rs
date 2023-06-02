@@ -13,10 +13,8 @@ parser!(pub grammar parser() for str {
 
     rule statement() -> Token
         = WHITESPACE() s:(
-            print() /
             comment() /
             var() /
-            assert() /
             call() /
             rtn() /
             loop_while() /
@@ -25,12 +23,6 @@ parser!(pub grammar parser() for str {
             if_else() /
             assignment()
         ) WHITESPACE() { s }
-
-    rule print() -> Token
-        = "print" _ e:expression() { Token::Print(Box::new(e)) }
-
-    rule assert() -> Token
-        = "assert" _ e:expression() { Token::Assert(Box::new(e)) }
 
     rule comment() -> Token
         = "--" s:$([' ' | ',' |'a'..='z' | 'A'..='Z' | '0'..='9']*) NEWLINES() { Token::Comment(s.to_owned()) }

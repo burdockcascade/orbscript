@@ -2,13 +2,13 @@
 function fib_quick()
     var count = 10
     var expected = 55
-    assert fib(count) == expected
+    assertEquals(fib(count), expected, "should be 55")
 end
 
 function fib_long()
     var count = 20
     var expected = 6765
-    assert fib(count) == expected
+    assertEquals(fib(count), expected, "should be 6765")
 end
 
 function fib(n)

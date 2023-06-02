@@ -9,6 +9,6 @@ function main()
     end
 
     -- assert a is true
-    assert a
+    assertTrue(a, "a should be true")
 
 end

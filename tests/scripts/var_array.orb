@@ -4,45 +4,45 @@ function main()
     var an_array = [1, 2.7, "fish", false]
 
     -- test array access
-    assert an_array[0] == 1
-    assert an_array[1] == 2.7
-    assert an_array[2] == "fish"
-    assert an_array[3] == false
+    assertEquals( an_array[0] , 1, "item should be 1")
+    assertEquals( an_array[1] , 2.7, "item should be 2.7")
+    assertEquals( an_array[2] , "fish", "item should be fish")
+    assertEquals( an_array[3] , false, "item should be false")
 
     -- test array assignment
     an_array[0] = 10
-    assert an_array[0] == 10
+    assertEquals(an_array[0], 10, "item should be 10")
 
     -- test array assignment
     an_array[1] = 20
-    assert an_array[1] == 20
+    assertEquals(an_array[1], 20, "item should be 20")
 
     -- test array assignment
     an_array[2] = 30
-    assert an_array[2] == 30
+    assertEquals(an_array[2], 30, "item should be 30")
 
     -- test array assignment
     an_array[0] = an_array[1] + an_array[2]
-    assert an_array[0] == 50
+    assertEquals(an_array[0], 50, "item should be 50")
 
     -- test array assignment
     an_array[0] = an_array[0] * an_array[0]
-    assert an_array[0] == 2500
+    assertEquals(an_array[0], 2500, "item should be 2500")
 
     -- test array concatenation
     var old_array = [1, 2, 3]
     var new_array = old_array + [true, "dog", 6]
 
     -- test array access with merged array
-    assert new_array[0] == 1
-    assert new_array[0 + 1] == 2
-    assert new_array[2] == 3
-    assert new_array[3]
-    assert new_array[2 + 2] == "dog"
-    assert new_array[10/2] == 6
+    assertEquals(new_array[0], 1, "item should be 1")
+    assertEquals(new_array[0 + 1], 2, "item should be 2")
+    assertEquals(new_array[2], 3, "item should be 3")
+    assertTrue(new_array[3], "item should be true")
+    assertEquals(new_array[2 + 2], "dog", "item should be dog")
+    assertEquals(new_array[10/2], 6, "item should be 6")
 
     -- test array access with variable
     var five = 5
-    assert new_array[five] == 6
+    assertEquals(new_array[five], 6, "item should be 6")
 
 end

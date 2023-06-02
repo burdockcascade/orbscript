@@ -10,11 +10,11 @@ pub struct Frame {
 impl Frame {
 
     // new frame with parameter as name
-    pub fn new(return_position: Option<usize>, args: Option<Vec<Value>>) -> Frame {
+    pub fn new(return_position: Option<usize>, args: Vec<Value>) -> Frame {
 
         Frame {
             return_position,
-            variables: args.unwrap_or(vec![]),
+            variables: args,
             data: vec![],
         }
     }

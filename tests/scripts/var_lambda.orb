@@ -2,19 +2,19 @@ function main()
 
     -- define a lambda
     var f1 = function(value)
-        assert value
+        assertTrue(value, "value should be true")
         return value
     end
 
     -- define another lambda
     var f2 = function(input)
-        assert input
-        return input
+        assertEquals(input, 7, "input should be 7")
+        return input == 7
     end
 
     -- call the lambda
-    assert f1(1 == 1)
+    assertTrue(f1(1 == 1), "1 == 1 should be true")
 
     -- call the lambda
-    assert f2(1 == 1)
+    assertTrue(f2(7), "7 should be 7")
 end

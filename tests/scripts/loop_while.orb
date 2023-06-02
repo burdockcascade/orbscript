@@ -8,10 +8,10 @@ function main()
     while b < 10 do
 
         -- assert b is greater than or equal to 0
-        assert b >= 0
+        assertTrue(b >= 0, "b is less than 0")
 
         -- assert b is less than 10
-        assert b < 10
+        assertTrue(b < 10, "b is greater than or equal to 10")
 
         -- increment b
         b = b + 1

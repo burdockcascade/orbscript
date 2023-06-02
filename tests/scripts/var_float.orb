@@ -1,24 +1,24 @@
 function main()
 
     var float = 3.14
-    assert float == 3.14
+    assertEquals(float , 3.14, "float == 3.14")
 
     var float2 = 5.5
-    assert float2 == 5.5
+    assertEquals(float2 , 5.5, "float2 == 5.5")
 
     var float3 = 7.7
-    assert float3 == 7.7
+    assertEquals(float3 , 7.7, "float3 == 7.7")
 
     var float4 = 9.9
-    assert float4 == 9.9
+    assertEquals(float4, 9.9, "float4 == 9.9")
 
     var float5 = 11.11
-    assert float5 == 11.11
+    assertEquals(float5 , 11.11, "float5 == 11.11")
 
     var floatSum = float + float2 + float3 + float4 + float5
-    assert floatSum == 37.349999999999994
+    assertEquals(floatSum , 37.349999999999994, "floatSum == 37.349999999999994")
 
     var floatAverage = floatSum / 5
-    assert floatAverage == 7.469999999999999
+    assertEquals(floatAverage , 7.469999999999999, "floatAverage == 7.469999999999999")
 
 end

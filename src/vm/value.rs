@@ -25,9 +25,7 @@ pub enum Value {
     // counter with start, step, end
     Counter(i32, i32, i32),
 
-    GlobalRef(String),
     FunctionPointer(usize),
-    InstructionPointer(usize),
 
 }
 

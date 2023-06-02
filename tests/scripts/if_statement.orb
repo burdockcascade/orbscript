@@ -1,12 +1,11 @@
+function main()
 
-    function main()
+    var a = false
 
-        var a = false
-
-        if 1 == 1 then
-            a = true
-        end
-
-        assert a
-
+    if 1 == 1 then
+        a = true
     end
+
+    assertTrue(a, "a should be true")
+
+end

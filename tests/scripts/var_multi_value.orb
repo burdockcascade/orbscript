@@ -3,14 +3,14 @@ function main()
 
     -- set v1 to a number
     var v1 = 1
-    assert v1 == 1
+    assertEquals(v1, 1, "v1 should be 1")
 
     -- set v1 to a string
     v1 = "fish"
-    assert v1 == "fish"
+    assertEquals(v1, "fish", "v1 should be fish")
 
     -- set v1 to a boolean
     v1 = true
-    assert v1
+    assertTrue(v1, "v1 should be true")
 
  end

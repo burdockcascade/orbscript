@@ -1,21 +1,21 @@
 function main()
 
     var  myFirstName = "Sanela"
-    assert myFirstName == "Sanela"
+    assertEquals(myFirstName, "Sanela", "myFirstName is not Sanela")
 
     var myLastName = "Kurtovic"
-    assert myLastName == "Kurtovic"
+    assertEquals(myLastName, "Kurtovic", "myLastName is not Kurtovic")
 
     var myHomeTown = "Sarajevo"
-    assert myHomeTown == "Sarajevo"
+    assertEquals(myHomeTown, "Sarajevo", "myHomeTown is not Sarajevo")
 
     var myAge = 30
-    assert myAge == 30
+    assertEquals(myAge, 30, "myAge is not 30")
 
     var myFullName = myFirstName + " " + myLastName
-    assert myFullName == "Sanela Kurtovic"
+    assertEquals(myFullName, "Sanela Kurtovic", "myFullName is not Sanela Kurtovic")
 
     var myStory = "My name is " + myFullName + " and I am " + myAge + " years old. I was born in " + myHomeTown + " and I really like it there."
-    assert myStory == "My name is Sanela Kurtovic and I am 30 years old. I was born in Sarajevo and I really like it there."
+    assertEquals(myStory, "My name is Sanela Kurtovic and I am 30 years old. I was born in Sarajevo and I really like it there.", "myStory is not correct")
 
 end

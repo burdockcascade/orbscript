@@ -45,8 +45,6 @@ impl Function {
     // compile a statement
     fn compile_statement(&mut self, statement: Box<Token>)  {
         match *statement {
-            Token::Assert(exp) => self.compile_assert(exp),
-            Token::Print(exp) => self.compile_print(exp),
             Token::Variable(name, expr) => self.compile_variable(name, expr),
             Token::Assign(name, expr) => self.compile_assignment(name, expr),
             Token::Call(name, args) => self.compile_call(name, args),
@@ -58,17 +56,6 @@ impl Function {
             Token::Comment(_) => { },
             _ => unimplemented!("statement not implemented: {:?}", statement)
         }
-    }
-
-    fn compile_assert(&mut self, exp: Box<Token>) {
-        self.compile_expression(exp);
-        self.instructions.push(Instruction::Assert);
-    }
-
-    // compile a print statement
-    fn compile_print(&mut self, exp: Box<Token>) {
-        self.compile_expression(exp);
-        self.instructions.push(Instruction::Print);
     }
 
 
@@ -174,7 +161,7 @@ impl Function {
         if self.variables.contains_key(&function_name) {
             self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(function_name.as_str())));
         } else {
-            self.instructions.push(Instruction::LoadGlobal(function_name));
+            self.instructions.push(Instruction::PushString(function_name));
         }
 
         // compile the arguments
@@ -364,7 +351,7 @@ impl Function {
                 self.anon_functions.insert(func_name.clone(), f.instructions);
 
                 // push globalref onto stack
-                self.instructions.push(Instruction::PushGlobalRef(func_name));
+                self.instructions.push(Instruction::PushString(func_name));
             }
 
             // Token::Object(class_name, params) => self.compile_new_object(class_name.to_string(), params),

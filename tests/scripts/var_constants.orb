@@ -9,13 +9,13 @@ const days_in_week = 7
 
 function main()
 
-    assert PI == 3.14159265359
-    assert E == 2.71828182846
-    assert PHI == 1.61803398875
-    assert SQRT2 == 1.41421356237
+    assertEquals(PI, 3.14159265359, "PI == 3.14159265359")
+    assertEquals(E, 2.71828182846, "E == 2.71828182846")
+    assertEquals(PHI, 1.61803398875, "PHI == 1.61803398875")
+    assertEquals(SQRT2, 1.41421356237, "SQRT2 == 1.41421356237")
 
-    assert name == "Math"
-    assert is_good
-    assert days_in_week == 7
+    assertEquals(name, "Math", "name == Math")
+    assertTrue(is_good, "is_good should be true")
+    assertEquals(days_in_week, 7, "days_in_week == 7")
 
 end

@@ -13,14 +13,14 @@ function main()
         counter = counter + 1
 
         -- assert that x is greater than 1 and less than 10
-        assert x > 1
+        assertTrue(x > 1, "x should be greater than 1")
 
         -- assert that x is less than 10
-        assert x < 10
+        assertTrue(x < 10, "x should be less than 10")
 
     end
 
     -- assert that counter is 8
-    assert counter == 8
+    assertEquals(counter, 8, "counter should be 8")
 
 end
