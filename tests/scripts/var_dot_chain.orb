@@ -23,6 +23,7 @@ function main()
     assertEquals(dict.c.f.h, 2, "expected 2")
     assertEquals(dict.c.f.i, true, "expected true")
 
+    -- test array of objects
     var vectors = [new vector2d(1,2), new vector2d(3,4), new vector2d(5,6)]
 
     assertEquals(vectors[0].x, 1, "expected 1")

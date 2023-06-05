@@ -1,0 +1,25 @@
+function main()
+
+    -- test array of objects
+    var vectors = [new vector2d(1,2), new vector2d(3,4), new vector2d(5,6)]
+
+    assertEquals(vectors[0].x, 1, "expected 1")
+    assertEquals(vectors[0].y, 2, "expected 2")
+    assertEquals(vectors[1].x, 3, "expected 3")
+    assertEquals(vectors[1].y, 4, "expected 4")
+    assertEquals(vectors[2].x, 5, "expected 5")
+    assertEquals(vectors[2].y, 6, "expected 6")
+
+end
+
+class vector2d
+
+    var x = 0
+    var y = 0
+
+    function vector2d(x, y)
+        self.x = x
+        self.y = y
+    end
+
+end

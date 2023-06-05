@@ -58,6 +58,11 @@ fn var_dot_chain() {
     assert_eq!(run(include_str!("scripts/var_dot_chain.orb"), None, None).unwrap(), None);
 }
 
+#[test]
+fn var_object_array() {
+    assert_eq!(run(include_str!("scripts/var_object_array.orb"), None, None).unwrap(), None);
+}
+
 // Functions
 
 #[test]
