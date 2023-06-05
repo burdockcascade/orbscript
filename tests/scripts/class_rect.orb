@@ -4,6 +4,7 @@ function main()
 
     assertEquals(rect.area(), 200, "expected area to be 200")
     assertEquals(rect.perimeter(), 60, "expected perimeter to be 60")
+    assertEquals(rect.stupid(), 460, "expected stupid to be 460")
 
 end
 

@@ -103,6 +103,11 @@ fn class_methods() {
     assert_eq!(run(include_str!("scripts/class_methods.orb"), None, None).unwrap(), None);
 }
 
+#[test]
+fn class_pass_and_modify() {
+    assert_eq!(run(include_str!("scripts/class_pass_and_modify.orb"), None, None).unwrap(), None);
+}
+
 // LOOPS
 
 #[test]
