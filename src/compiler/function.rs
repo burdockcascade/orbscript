@@ -253,7 +253,7 @@ impl Function {
         self.compile_expression(counter_start_at);
 
         // Create Iterator
-        self.instructions.push(Instruction::IteratorStart);
+        self.instructions.push(Instruction::IteratorNew);
 
         // temp jump to end
         let start_ins_ptr = self.instructions.len();
@@ -311,6 +311,12 @@ impl Function {
             match item {
                 Token::Identifier(name) => {
                     self.instructions.push(Instruction::PushString(name.to_string()));
+                    self.instructions.push(Instruction::GetCollectionItem);
+                },
+                Token::CollectionIndex(var, index) => {
+                    self.instructions.push(Instruction::PushString(var.to_string()));
+                    self.instructions.push(Instruction::GetCollectionItem);
+                    self.compile_expression(index);
                     self.instructions.push(Instruction::GetCollectionItem);
                 },
                 Token::Call(name, args) => {

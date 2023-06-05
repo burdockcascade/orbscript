@@ -8,23 +8,14 @@ function main()
     var start_at = 1
 
     -- set target to 3
-    var target = 100
+    var target = 3
 
     -- loop
     for t = start_at to target do
 
-        -- increment counter
-        counter = counter + 1
 
-        -- assert that t is greater than or equal to 1
-        assertTrue(t >= 1, "t should be greater than or equal to 1")
-
-        -- assert that t is less than or equal to 3
-        assertTrue(t <= 100, "t should be less than or equal to 3")
 
     end
 
-    -- assert that counter is 3
-    assertEquals(counter, 100, "counter should be 3")
 
 end

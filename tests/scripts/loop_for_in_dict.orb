@@ -22,6 +22,6 @@ function main()
     end
 
     -- assert that the counter is 10
-    assertTrue(counter == 10, "counter == 10")
+    assertEquals(counter, 10, "counter == 10")
 
 end

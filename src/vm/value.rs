@@ -5,6 +5,7 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Mul, Not, Sub};
 use std::rc::Rc;
+use crate::vm::counter::IndexedCounter;
 
 // Value
 #[derive(Clone, PartialEq, Debug)]
@@ -27,7 +28,7 @@ pub enum Value {
     Object(Rc<RefCell<HashMap<String, Value>>>),
 
     // counter with start, step, end
-    Counter(i32, i32, i32),
+    Counter(IndexedCounter),
 
     // References and Pointers
     FunctionRef(String),

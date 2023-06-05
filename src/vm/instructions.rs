@@ -1,6 +1,3 @@
-use crate::vm::value::Value;
-
-// Instruction
 #[derive(Clone, Debug)]
 pub enum Instruction {
 
@@ -30,7 +27,7 @@ pub enum Instruction {
     CreateCollectionAsArray(usize),
 
     // Iteration
-    IteratorStart,
+    IteratorNew,
     IteratorNext(usize, usize),
     
     // Instructions

@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use log::{debug, info, trace, warn};
+use crate::vm::counter::IndexedCounter;
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -11,6 +12,7 @@ pub mod program;
 pub mod instructions;
 pub mod value;
 mod frame;
+mod counter;
 
 pub(crate) struct VM {
 
@@ -432,7 +434,7 @@ impl VM {
                 //==================================================================================
                 // ITERATION
 
-                Instruction::IteratorStart => {
+                Instruction::IteratorNew => {
 
                     let Value::Integer(start) = frame.pop_value_from_stack() else {
                         panic!("start should be an integer");
@@ -470,14 +472,14 @@ impl VM {
                     };
 
                     // push counter onto stack
-                    frame.push_value_to_stack(Value::Counter(start, step, end));
+                    frame.push_value_to_stack(Value::Counter(IndexedCounter::new(start, step, end)));
 
                     ip += 1;
                 }
 
                 Instruction::IteratorNext(var_slot, ip_delta) => {
 
-                    let Value::Counter(index, step, end) = frame.pop_value_from_stack() else {
+                    let Value::Counter(mut counter) = frame.pop_value_from_stack() else {
                         panic!("invalid counter on stack");
                     };
 
@@ -485,43 +487,42 @@ impl VM {
 
                         Value::Integer(i) => {
 
-                            // calculate next count
-                            let next_count = index + step;
-
-                            // if next count is greater than i, then skip to next instruction
-                            if next_count > i + 1 {
+                            if counter.is_done() {
                                 ip += ip_delta;
                                 continue;
                             }
 
                             // push value to variable slot
-                            frame.push_value_to_variable_slot(*var_slot, Value::Integer(index as i32));
+                            frame.push_value_to_variable_slot(*var_slot, Value::Integer(counter.index));
+
+                            // increment counter
+                            counter.increment();
 
                             // push ite and counter back onto stack
                             frame.push_value_to_stack(Value::Integer(i));
-                            frame.push_value_to_stack(Value::Counter(next_count, step, end));
+                            frame.push_value_to_stack(Value::Counter(counter));
 
                         }
                         Value::Array(items) => {
 
-                            // calculate next count
-                            let next_count = index + step;
-
-                            if next_count > end + 1 {
+                            if counter.is_done() {
                                 ip += ip_delta;
                                 continue;
                             }
 
                             // get item from array
                             let borrowed_items = items.borrow();
-                            let array_value = borrowed_items.get(index as usize).expect(format!("array index {} should exist", index).as_str());
+                            let array_value = borrowed_items.get(counter.index as usize).expect(format!("array index {} should exist", counter.index).as_str());
 
                             // push value to variable slot
                             frame.push_value_to_variable_slot(*var_slot, array_value.clone());
 
+                            // increment counter
+                            counter.increment();
+
                             // push collection back onto stack
                             frame.push_value_to_stack(Value::Array(items.clone()));
-                            frame.push_value_to_stack(Value::Counter(next_count, step, end));
+                            frame.push_value_to_stack(Value::Counter(counter));
 
                         },
                         _ => panic!("can not iterate over this value type")

@@ -2,10 +2,25 @@ function main()
 
     var dict = {
         "a": 1,
-        "b": 2,
-        "c": 3
+        "b": [true, false, false, true],
+        "c": {
+            "d": "hello",
+            "e": "world",
+            "f": {
+                "g": 1,
+                "h": 2,
+                "i": true
+            }
+        }
     }
 
     assertEquals(dict.a, 1, "expected 1")
+    assertEquals(dict.b[0], true, "expected true")
+    assertEquals(dict.b[3], true, "expected true")
+    assertEquals(dict.c.d, "hello", "expected hello")
+    assertEquals(dict.c.e, "world", "expected world")
+    assertEquals(dict.c.f.g, 1, "expected 1")
+    assertEquals(dict.c.f.h, 2, "expected 2")
+    assertEquals(dict.c.f.i, true, "expected true")
 
 end
