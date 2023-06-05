@@ -1,0 +1,11 @@
+function main()
+
+    var dict = {
+        "a": 1,
+        "b": 2,
+        "c": 3
+    }
+
+    assertEquals(dict.a, 1, "expected 1")
+
+end

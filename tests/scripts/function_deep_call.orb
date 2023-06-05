@@ -1,0 +1,35 @@
+function func1(val)
+    return func2(val)
+end
+
+function func2(val)
+    return func3(val)
+end
+
+function func3(val)
+    return func4(val)
+end
+
+function func4(val)
+    return func5(val)
+end
+
+function func5(val)
+    return func6(val)
+end
+
+function func6(val)
+    return func7(val)
+end
+
+function func7(val)
+    return func8(val)
+end
+
+function func8(val)
+    return val
+end
+
+function main()
+    assertTrue(func1(1 == 1), "should be true")
+end

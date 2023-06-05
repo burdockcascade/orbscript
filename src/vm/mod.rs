@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
+use log::{debug, info, trace, warn};
 use crate::vm::frame::Frame;
 use crate::vm::instructions::Instruction;
 use crate::vm::program::Program;
@@ -33,6 +34,8 @@ impl VM {
 
     pub fn execute(&mut self, program: Program, parameters: Option<Vec<Value>>, entrypoint: Option<String>) -> Result<Option<Value>, String> {
 
+        info!("Running program");
+
         let mut ip: usize;
         let mut frames: Vec<Frame> = vec![];
         
@@ -56,6 +59,11 @@ impl VM {
         // push new frame
         frames.push(Frame::new(None, parameters.unwrap_or(vec![])));
 
+        trace!("entrypoint: {:?}", entry);
+        trace!("globals: {:?}", program.globals);
+        trace!("instructions: {:?}", program.instructions);
+        trace!("== start execution ==");
+
         // set current frame
         let mut frame = frames.last_mut().expect("frame should be on the stack");
         loop {
@@ -63,9 +71,11 @@ impl VM {
             // get instruction
             let instruction = program.instructions.get(ip).expect(&*format!("instruction #{} should exist", ip));
 
-            // debug!("ip: {}, instruction: {:?}", ip, instruction);
-            // debug!("variables: {:?}", frame.variables);
-            // debug!("stack: {:?}", frame.data);
+            trace!("== loop ==");
+            trace!("ip: {}, instruction: {:?}", ip, instruction);
+            trace!("globals: {:?}", program.globals);
+            trace!("variables: {:?}", frame.variables);
+            trace!("stack: {:?}", frame.data);
 
             match instruction {
 
@@ -94,6 +104,11 @@ impl VM {
 
                 Instruction::PushString(value) => {
                     frame.push_value_to_stack(Value::String(value.clone()));
+                    ip += 1;
+                }
+
+                Instruction::PushFunctionRef(value) => {
+                    frame.push_value_to_stack(Value::FunctionRef(value.clone()));
                     ip += 1;
                 }
 
@@ -149,13 +164,39 @@ impl VM {
                 //==================================================================================
                 // FUNCTIONS
 
+                Instruction::LoadMethod(name) => {
+
+                    // pop object from stack
+                    let Value::Object(object) = frame.pop_value_from_stack() else {
+                        panic!("method should be called on an object");
+                    };
+
+                    // borrow object
+                    let borrowed_object = object.borrow();
+
+                    // get function ref from object
+                    let Some(function_ref) = borrowed_object.get(name) else {
+                        panic!("method should exist on object");
+                    };
+
+                    // push function ref onto stack
+                    frame.push_value_to_stack(function_ref.clone());
+
+                    // push object back onto stack
+                    frame.push_value_to_stack(Value::Object(object.clone()));
+
+                    ip += 1;
+                },
+
                 Instruction::Call(arg_len) => {
 
                     // cut args from stack and then reverse order
-                    let mut args = frame.pop_values_from_stack(*arg_len as usize);
+                    let mut args = frame.pop_values_from_stack(*arg_len);
                     args.reverse();
 
-                    if let Value::String(func_name) = frame.pop_value_from_stack() {
+                    let fref = frame.pop_value_from_stack();
+
+                    if let Value::FunctionRef(func_name) = fref {
 
                         if self.builtin_functions.contains_key(func_name.as_str()) {
 
@@ -194,7 +235,7 @@ impl VM {
                         }
 
                     } else {
-                        panic!("function name is not on the stack")
+                        panic!("looking for function ref but found: {:?}", fref);
                     };
 
                 }
@@ -229,6 +270,54 @@ impl VM {
 
                 }
 
+
+                //==================================================================================
+                // Objects
+
+                Instruction::CreateObject(template_name, arg_len) => {
+
+                    // fetch template
+                    match program.globals.get(template_name) {
+                        Some(Value::Class(class_template)) => {
+
+                            // create new object
+                            let new_object = Value::Object(Rc::new(RefCell::new(class_template.clone())));
+
+                            // cut args from stack
+                            let mut args = frame.pop_values_from_stack(*arg_len);
+
+                            // push new object onto stack
+                            frame.push_value_to_stack(new_object.clone());
+
+                            // call constructor
+                            match program.globals.get(&*format!("{}.{}", template_name, template_name)) {
+                                Some(Value::FunctionPointer(function_position)) => {
+
+                                    // push object into args as 'self'
+                                    args.push(new_object.clone());
+
+                                    // args are in reverse order, so reverse them
+                                    args.reverse();
+
+                                    // push new frame onto frames
+                                    let next_ip = ip + 1;
+                                    frames.push(Frame::new(Some(next_ip), args));
+
+                                    // set current frame
+                                    frame = frames.last_mut().expect("frame should be on the stack");
+
+                                    // set instruction pointer to function
+                                    ip = *function_position;
+
+                                },
+                                _ => panic!("can not find constructor for class: {:?}", template_name)
+                            }
+
+                        }
+                        _ => panic!("can not find class: {:?}", template_name)
+                    }
+
+                }
 
                 //==================================================================================
                 // COLLECTIONS
@@ -287,9 +376,17 @@ impl VM {
                             }
                         },
                         Value::Dictionary(items) => {
-
                             if let Value::String(index) = key {
                                 let items_borrowed = items.borrow();
+                                let v2 = items_borrowed.get(index.as_str()).expect(&*format!("key '{}' should exist in dictionary", index));
+                                frame.push_value_to_stack(v2.clone());
+                            } else {
+                                panic!("can not get index on non-string {}", key)
+                            }
+                        },
+                        Value::Object(obj) => {
+                            if let Value::String(index) = key {
+                                let items_borrowed = obj.borrow();
                                 let v2 = items_borrowed.get(index.as_str()).expect(&*format!("key '{}' should exist in dictionary", index));
                                 frame.push_value_to_stack(v2.clone());
                             } else {
@@ -317,7 +414,7 @@ impl VM {
                                 panic!("can not get index on non-integer {}", key)
                             }
                         },
-                        Value::Dictionary(items) => {
+                        Value::Dictionary(items) | Value::Object(items) => {
                             if let Value::String(index) = key {
                                 items.borrow_mut().insert(index, value);
                                 frame.push_value_to_stack(Value::Dictionary(items));
@@ -424,7 +521,7 @@ impl VM {
 
                             // push collection back onto stack
                             frame.push_value_to_stack(Value::Array(items.clone()));
-                            frame.push_value_to_stack(Value::Counter(index + 1, step, end));
+                            frame.push_value_to_stack(Value::Counter(next_count, step, end));
 
                         },
                         _ => panic!("can not iterate over this value type")
@@ -509,7 +606,6 @@ impl VM {
             }
 
         }
-
 
     }
 

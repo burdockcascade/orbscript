@@ -19,6 +19,11 @@ impl Frame {
         }
     }
 
+    pub fn copy_stack_top(&mut self) {
+        let value = self.get_top_value_on_stack();
+        self.push_value_to_stack(value);
+    }
+
     // push a value to the stack
     pub fn push_value_to_stack(&mut self, value: Value) {
         self.data.push(value);

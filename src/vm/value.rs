@@ -10,21 +10,27 @@ use std::rc::Rc;
 #[derive(Clone, PartialEq, Debug)]
 pub enum Value {
 
-    // Values
+    // Primitive Types
     Null,
     Integer(i32),
     Pointer(usize),
     Float(f32),
     Bool(bool),
     String(String),
+
+    // Collections
     Array(Rc<RefCell<Vec<Value>>>),
     Dictionary(Rc<RefCell<HashMap<String, Value>>>),
+
+
     Class(HashMap<String, Value>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
 
     // counter with start, step, end
     Counter(i32, i32, i32),
 
+    // References and Pointers
+    FunctionRef(String),
     FunctionPointer(usize),
 
 }
@@ -38,7 +44,7 @@ impl Display for Value {
             Value::Bool(b) => write!(f, "{b}"),
             Value::String(string) => write!(f, "{string}"),
             Value::Array(_val) => write!(f, "Array"),
-            Value::FunctionPointer(name) => write!(f, "{name}"),
+            Value::FunctionRef(i) => write!(f, "{i}"),
             _ => write!(f, "todo for {:?}", self),
         }
     }

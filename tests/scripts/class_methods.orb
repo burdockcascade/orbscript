@@ -1,0 +1,30 @@
+class shape
+
+    var x = 0
+    var y = 0
+    var z = 0
+
+    function shape(x, y, z)
+        self.x = x
+        self.y = y
+        self.z = z
+    end
+
+    function move(x, y, z)
+        self.x = x
+        self.y = y
+        self.z = z
+    end
+
+end
+
+function main()
+
+    var s = new shape(1, 2, 3)
+    s.move(4, 5, 6)
+
+    assertEquals(s.x, 4, "s.x")
+    assertEquals(s.y, 5, "s.y")
+    assertEquals(s.z, 6, "s.z")
+
+end

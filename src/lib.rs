@@ -9,9 +9,7 @@ mod vm;
 
 pub fn run(program: &str, parameters: Option<Vec<Value>>, entry: Option<String>) -> Result<Option<Value>, String> {
 
-    let _ = TermLogger::init(LevelFilter::Trace, Config::default(),TerminalMode::Mixed, ColorChoice::Auto);
-
-    info!("Running program");
+    let _ = TermLogger::init(LevelFilter::Off, Config::default(),TerminalMode::Mixed, ColorChoice::Auto);
 
     let mut c = Compiler::new();
     let p = c.compile(program)?;
@@ -40,11 +38,11 @@ pub fn run(program: &str, parameters: Option<Vec<Value>>, entry: Option<String>)
     vm.add_builtin_function("assertEquals", |mut values| {
 
         let msg = values.pop().expect("No msg provided");
-        let v2 = values.pop().expect("No boolean");
-        let v1 = values.pop().expect("No boolean");
+        let v2 = values.pop().expect("No value provided");
+        let v1 = values.pop().expect("No value provide");
 
         if v1 != v2 {
-            panic!("Assertion failed: {}", msg.to_string());
+            panic!("Assertion failed: {}. Got {} but wanted {}", msg.to_string(), v1.to_string(), v2.to_string());
         }
 
         None

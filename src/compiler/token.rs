@@ -2,12 +2,9 @@
 pub enum Token {
 
     Comment(String),
-    Assert(Box<Token>),
     Import(String),
-    Print(Box<Token>),
 
-    Function(String, Vec<Token>, Vec<Token>),
-
+    Function(Option<String>, String, Vec<Token>, Vec<Token>),
     AnonFunction(Vec<Token>, Vec<Token>),
     Class(String, Vec<Token>),
     Constructor(Vec<Token>, Vec<Token>),
@@ -17,6 +14,7 @@ pub enum Token {
 
     Variable(Box<Token>, Box<Token>),
     Constant(Box<Token>, Box<Token>),
+    NewObject(String, Vec<Token>),
     Assign(Box<Token>, Box<Token>),
 
     Null,
@@ -25,7 +23,7 @@ pub enum Token {
     Bool(bool),
     String(String),
     Array(Vec<Token>),
-    Object(Box<Token>, Vec<Token>),
+
 
     Dictionary(Vec<Token>),
     KeyValuePair(String, Box<Token>),
@@ -56,7 +54,12 @@ pub enum Token {
 impl ToString for Token {
     fn to_string(&self) -> String {
         match self {
-            Token::Function(name, _, _) => name.to_string(),
+            Token::Function(class, name, _, _) => {
+                match class {
+                    Some(class) => format!("{}::{}", class, name),
+                    None => name.to_string()
+                }
+            },
             Token::Identifier(name) => name.to_string(),
             Token::String(s) => s.to_string(),
             _ => String::from("")

@@ -9,7 +9,7 @@ parser!(pub grammar parser() for str {
 
     // top level rule
     pub rule script() -> Vec<Token>
-        = WHITESPACE() f:(constant() / comment() / function())* WHITESPACE() { f }
+        = WHITESPACE() f:(constant() / comment() / class() / function())* WHITESPACE() { f }
 
     rule statement() -> Token
         = WHITESPACE() s:(
@@ -21,33 +21,20 @@ parser!(pub grammar parser() for str {
             loop_for() /
             loop_for_each() /
             if_else() /
-            assignment()
+            assignment() /
+            dot_chain()
         ) WHITESPACE() { s }
 
     rule comment() -> Token
         = "--" s:$([' ' | ',' |'a'..='z' | 'A'..='Z' | '0'..='9']*) NEWLINES() { Token::Comment(s.to_owned()) }
 
     //==============================================================================================
-    // VARIABLES
-
-    // variable declaration either with a value or default to null
-    rule var() -> Token
-        = "var" _ i:identifier() WHITESPACE() "=" WHITESPACE() e:expression() {  Token::Variable(Box::new(i), Box::new(e)) } /
-          "var" _ i:identifier() { Token::Variable(Box::new(i), Box::new(Token::Null)) }
-
-    // existing variable assignment
-    rule assignment() -> Token
-        = left:(array_index() / identifier()) WHITESPACE() "=" WHITESPACE() r:expression() {  Token::Assign(Box::new(left), Box::new(r)) }
-
-    rule constant() -> Token
-        = "const" _ i:identifier() WHITESPACE() "=" WHITESPACE() e:expression() NEWLINES() {  Token::Constant(Box::new(i), Box::new(e)) }
-
-    //==============================================================================================
     // FUNCTIONS
 
     // function definition with parameters
     rule function() -> Token
-        = "function" _ name:identifier() _ "(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::Function(name.to_string(), params, stmts) }
+        = "function" _ class:identifier() ":" name:identifier() _ "(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::Function(Some(class.to_string()), name.to_string(), params, stmts) }
+        / "function" _ name:identifier() _ "(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::Function(None, name.to_string(), params, stmts) }
 
     rule lambda() -> Token
         = "function(" params:param_list() ")" stmts:statement()* WHITESPACE() "end" WHITESPACE() { Token::AnonFunction(params, stmts) }
@@ -66,6 +53,39 @@ parser!(pub grammar parser() for str {
 
     rule rtn() -> Token
         = "return" _ e:expression() { Token::Return(Box::new(e)) }
+
+    //==============================================================================================
+    // CLASS
+
+    rule class() -> Token
+        = "class" _ name:identifier() WHITESPACE() body:(WHITESPACE() item:(comment() / var() / function()) WHITESPACE() { item })* WHITESPACE() "end" WHITESPACE() { Token::Class(name.to_string(), body) }
+
+
+    //==============================================================================================
+    // VARIABLES
+
+    // variable declaration either with a value or default to null
+    rule var() -> Token
+        = "var" _ i:identifier() WHITESPACE() "=" WHITESPACE() e:expression() {  Token::Variable(Box::new(i), Box::new(e)) }
+        / "var" _ i:identifier() { Token::Variable(Box::new(i), Box::new(Token::Null)) }
+
+    // existing variable assignment
+    rule assignment() -> Token
+        = left:(dot_chain() / array_index() / identifier()) WHITESPACE() "=" WHITESPACE() r:expression() {  Token::Assign(Box::new(left), Box::new(r)) }
+
+    rule constant() -> Token
+        = "const" _ i:identifier() WHITESPACE() "=" WHITESPACE() e:expression() NEWLINES() {  Token::Constant(Box::new(i), Box::new(e)) }
+
+
+    //==============================================================================================
+    // CHAIN
+
+    rule dot_chain() -> Token
+        = i:dot_chain_item() "." chain:((e:dot_chain_item() {e}) ** ".") { Token::DotChain(Box::new(i), chain) }
+
+    rule dot_chain_item() -> Token
+        = item:(call() / array_index() / identifier()) { item }
+
 
     //==============================================================================================
     // LOOPS
@@ -110,17 +130,19 @@ parser!(pub grammar parser() for str {
     }
 
     rule literal() -> Token
-        = f:float() { Token::Float(f) }
-        / i:integer() { Token::Integer(i) }
+        = float()
+        / integer()
         / list()
         / dictionary()
+        / dot_chain()
         / array_index()
-        / l:lambda() { l } // this needs to come before call
-        / c:call() { c }
-        / n:null() { n }
-        / b:boolean() { b }
-        / s:string() { s }
-        / i:identifier() { i } // this is greedy and must always come last
+        / lambda() // this needs to come before call
+        / call()
+        / null()
+        / boolean()
+        / string()
+        / new_object()
+        / identifier() // this is greedy and must always come last
 
 
     rule identifier() -> Token
@@ -129,11 +151,11 @@ parser!(pub grammar parser() for str {
     rule string() -> Token
         = "\""  n:$([^'"']*) "\""  { Token::String(n.to_owned()) }
 
-    rule integer() -> i32
-        = n:$("-"? ['0'..='9']+) { n.parse().unwrap() }
+    rule integer() -> Token
+        = n:$("-"? ['0'..='9']+) { Token::Integer(n.parse().unwrap()) }
 
-    rule float() -> f32
-        = n:$("-"? ['0'..='9']+ "." ['0'..='9']+) { n.parse().unwrap() }
+    rule float() -> Token
+        = n:$("-"? ['0'..='9']+ "." ['0'..='9']+) { Token::Float(n.parse().unwrap()) }
 
     rule boolean() -> Token
         = "true" { Token::Bool(true) }
@@ -150,6 +172,9 @@ parser!(pub grammar parser() for str {
 
     rule null() -> Token
         = "null" { Token::Null }
+
+    rule new_object() -> Token
+        = "new" _ i:identifier() _ "(" _ args:arg_list() _ ")" { Token::NewObject(i.to_string(), args) }
 
     //==============================================================================================
     // WHITESPACE

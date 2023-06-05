@@ -1,0 +1,35 @@
+function main()
+
+    var rect = new rectangle(10, 20)
+
+    assertEquals(rect.area(), 200, "expected area to be 200")
+    assertEquals(rect.perimeter(), 60, "expected perimeter to be 60")
+
+end
+
+class rectangle
+
+    var x
+    var y
+
+    function rectangle(x, y)
+        self.x = x
+        self.y = y
+    end
+
+    function area()
+        return self.x * self.y
+    end
+
+    function perimeter()
+        var v1 = self.x + self.y
+        return v1 * 2
+    end
+
+    function stupid()
+        return 2 * self.area() + self.perimeter()
+    end
+
+end
+
+

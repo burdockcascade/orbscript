@@ -10,6 +10,7 @@ pub enum Instruction {
     PushFloat(f32),
     PushBool(bool),
     PushString(String),
+    PushFunctionRef(String),
 
     // Variables
     MoveToLocalVariable(usize),
@@ -17,9 +18,10 @@ pub enum Instruction {
 
     // Global
     LoadGlobal(String),
+    LoadMethod(String),
 
     // Objects
-    CreateObject,
+    CreateObject(String, usize),
 
     // Collections
     GetCollectionItem,

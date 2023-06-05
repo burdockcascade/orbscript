@@ -1,0 +1,27 @@
+class shape
+
+    var x = 0
+    var y = 0
+    var z = 0
+
+    function shape(x, y, z)
+        self.x = x
+        self.y = y
+        self.z = z
+    end
+
+end
+
+function main()
+
+    var s = new shape(1, 2, 3)
+    s.x = 4
+    s.y = 5
+    s.z = 6
+
+    assertEquals(s.x, 4, "expected 4")
+    assertEquals(s.y, 5, "expected 5")
+    assertEquals(s.z, 6, "expected 6")
+
+
+end

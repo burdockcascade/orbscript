@@ -1,21 +1,25 @@
 use std::collections::HashMap;
+use log::error;
 use crate::compiler::token::Token;
 use crate::vm::instructions::Instruction;
+use crate::vm::value::Value;
 
 #[derive(Clone)]
 pub struct Function {
     pub instructions: Vec<Instruction>,
     variables: HashMap<String, usize>,
-    pub anon_functions: HashMap<String, Vec<Instruction>>
+    pub anon_functions: HashMap<String, Vec<Instruction>>,
+    globals: HashMap<String, Value>,
 }
 
 impl Function {
-    pub fn new(parameters: Vec<Token>, body: Vec<Token>) -> Function {
+    pub fn new(parameters: Vec<Token>, body: Vec<Token>, globals: HashMap<String, Value>) -> Function {
 
         let mut f = Function {
             instructions: vec![],
             variables: Default::default(),
-            anon_functions: Default::default()
+            anon_functions: Default::default(),
+            globals
         };
 
         // store the parameters as variables
@@ -29,7 +33,7 @@ impl Function {
             f.instructions.push(Instruction::Return(false));
         }
 
-        f
+        return f;
     }
 
     //==============================================================================================
@@ -54,6 +58,7 @@ impl Function {
             Token::ForEach(var, collection, body) =>   self.compile_iterator(var, Box::new(Token::Integer(0)),  Box::new(Token::Integer(1)), collection, body),
             Token::IfElse(cond, body, else_body) => self.compile_if_else(cond, body, else_body),
             Token::Comment(_) => { },
+            Token::DotChain(start, chain) => self.compile_chain(start, chain),
             _ => unimplemented!("statement not implemented: {:?}", statement)
         }
     }
@@ -99,29 +104,29 @@ impl Function {
                 self.instructions.push(Instruction::MoveToLocalVariable(slot));
             },
 
-            // Token::DotChain(start, mut chain) => {
-            //
-            //     // remove last item from chain
-            //     let last_item = chain.pop().expect("chain to have at least one item");
-            //
-            //     self.compile_chain(&start, chain.as_slice());
-            //     self.compile_expression(right);
-            //
-            //     match last_item {
-            //         Token::Identifier(name) => {
-            //             self.instructions.push(Instruction::StackPush(Value::String(name.to_string())));
-            //             self.instructions.push(Instruction::SetCollectionItemByKey);
-            //         },
-            //
-            //         // fixme
-            //         Token::ArrayIndex(name, index) => {
-            //             self.instructions.push(Instruction::StackPush(Value::String(name.to_string())));
-            //             self.instructions.push(Instruction::SetCollectionItemByKey);
-            //         },
-            //         _ => panic!("last item in chain is not a variable or index")
-            //     }
-            //
-            // },
+            Token::DotChain(start, mut chain) => {
+
+                // remove last item from chain
+                let last_item = chain.pop().expect("chain to have at least one item");
+
+                self.compile_chain(start, chain);
+                self.compile_expression(right);
+
+                match last_item {
+                    Token::Identifier(name) => {
+                        self.instructions.push(Instruction::PushString(name.to_string()));
+                        self.instructions.push(Instruction::SetCollectionItem);
+                    },
+
+                    // fixme
+                    // Token::ArrayIndex(name, index) => {
+                    //     self.instructions.push(Instruction::PushString(name.to_string()));
+                    //     self.instructions.push(Instruction::SetCollectionItem);
+                    // },
+                    _ => panic!("last item in chain is not a variable or index")
+                }
+
+            },
 
             // store value in array index
             Token::CollectionIndex(name, index) => {
@@ -161,7 +166,7 @@ impl Function {
         if self.variables.contains_key(&function_name) {
             self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(function_name.as_str())));
         } else {
-            self.instructions.push(Instruction::PushString(function_name));
+            self.instructions.push(Instruction::PushFunctionRef(function_name));
         }
 
         // compile the arguments
@@ -176,6 +181,25 @@ impl Function {
     fn compile_return(&mut self, expr: Box<Token>) {
         self.compile_expression(expr);
         self.instructions.push(Instruction::Return(true));
+    }
+
+
+    //==============================================================================================
+    // CLASSES
+
+    fn compile_new_object(&mut self, class_name: String, params: Vec<Token>) {
+
+        // get params length
+        let params_len = params.len();
+
+        // load params
+        for param in params {
+            self.compile_expression(Box::new(param));
+        }
+
+        // create object
+        self.instructions.push(Instruction::CreateObject(class_name.clone(), params_len));
+
     }
 
     //==============================================================================================
@@ -272,7 +296,44 @@ impl Function {
 
     }
 
+    //==============================================================================================
+    // DOT CHAIN
 
+    fn compile_chain(&mut self, start: Box<Token>, chain: Vec<Token>) {
+
+        // load the start of the chain
+        self.compile_expression(start);
+
+        // for each item in chain
+        for item in chain {
+
+            // push load object member instruction onto stack
+            match item {
+                Token::Identifier(name) => {
+                    self.instructions.push(Instruction::PushString(name.to_string()));
+                    self.instructions.push(Instruction::GetCollectionItem);
+                },
+                Token::Call(name, args) => {
+
+                    // load method
+                    self.instructions.push(Instruction::LoadMethod(name.to_string()));
+
+                    let arg_len = args.len() + 1;
+
+                    // compile the arguments
+                    for arg in args {
+                        self.compile_expression(Box::new(arg));
+                    }
+
+                    self.instructions.push(Instruction::Call(arg_len));
+
+                },
+                _ => unreachable!("chain item {:?} is not a variable or index", item)
+            }
+
+        }
+
+    }
 
     //==============================================================================================
     // EXPRESSIONS
@@ -346,15 +407,13 @@ impl Function {
 
                 // create a new function
                 let func_name = format!("lambda_{}", self.anon_functions.len());
-                let f = Function::new(args, body);
+                let f = Function::new(args, body, self.globals.clone());
 
                 self.anon_functions.insert(func_name.clone(), f.instructions);
 
                 // push globalref onto stack
-                self.instructions.push(Instruction::PushString(func_name));
+                self.instructions.push(Instruction::PushFunctionRef(func_name));
             }
-
-            // Token::Object(class_name, params) => self.compile_new_object(class_name.to_string(), params),
 
             Token::CollectionIndex(id, index) => {
 
@@ -368,6 +427,12 @@ impl Function {
                 // get array value
                 self.instructions.push(Instruction::GetCollectionItem);
 
+            }
+
+            Token::NewObject(class_name, params) => self.compile_new_object(class_name, params),
+
+            Token::DotChain(start, chain) => {
+                self.compile_chain(start, chain);
             }
 
             Token::Call(name, args) => {

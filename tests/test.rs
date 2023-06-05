@@ -53,6 +53,11 @@ fn var_constant() {
     assert_eq!(run(include_str!("scripts/var_constants.orb"), None, None).unwrap(), None);
 }
 
+#[test]
+fn var_dot_chain() {
+    assert_eq!(run(include_str!("scripts/var_dot_chain.orb"), None, None).unwrap(), None);
+}
+
 // Functions
 
 #[test]
@@ -68,6 +73,29 @@ fn function_with_parameters() {
 #[test]
 fn function_with_unused_function() {
     assert_eq!(run(include_str!("scripts/function_with_unused_function.orb"), None, None).unwrap(), None);
+}
+
+#[test]
+fn function_deep_call() {
+    assert_eq!(run(include_str!("scripts/function_deep_call.orb"), None, None).unwrap(), None);
+}
+
+
+// CLASS
+
+#[test]
+fn class_rect() {
+    assert_eq!(run(include_str!("scripts/class_rect.orb"), None, None).unwrap(), None);
+}
+
+#[test]
+fn class_fields() {
+    assert_eq!(run(include_str!("scripts/class_fields.orb"), None, None).unwrap(), None);
+}
+
+#[test]
+fn class_methods() {
+    assert_eq!(run(include_str!("scripts/class_methods.orb"), None, None).unwrap(), None);
 }
 
 // LOOPS
